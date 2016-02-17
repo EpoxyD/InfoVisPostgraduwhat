@@ -3,9 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <title>Postgraduwhat</title>
-    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 </head>
 <body>
     <h1>Postgraduwhat visualisatie</h1>
+
+    <script>
+
+        //ff wat random csv data
+        var csv = "ID,Gas,Water,Electric\n1,10,5,2\n2,20,10,4\n3,30,15,6\n4,40,20,8\n5,50,25,10\n6,60,30,12" +
+                "\n7,10,35,14\n8,20,40,16\n9,30,45,18\n10,40,50,20\n11,50,55,22\n12,60,60,24\n13,10,5,26\n" +
+                "14,20,10,28\n15,30,15,30\n16,40,20,32\n17,50,25,34\n18,60,30,36\n19,10,35,38\n20,20,40,40\n" +
+                "21,30,45,42\n22,40,50,44\n23,50,55,46\n24,60,60,48\n25,20,50,50";
+
+        /*
+         *  Zo zet ge het om in een array met daarin json
+         *
+         *  [{ID: "1", Gas: "10", Water: "5", Electric: "2"},
+         *   {ID: "2", Gas: "20", Water: "10", Electric: "4"},
+         *   ...
+         *   {ID: "25", Gas: "20", Water: "50", Electric: "50"}]
+         */
+        var array_data = d3.csv.parse(csv);
+
+        //Uitprinten naar de console
+        console.debug(array_data);
+
+        //Zo selecteerd ge 1 json-string (1 rij in de DB)
+        var firstRow = array_data[0];
+        //En zo accessed ge die row.ID of row.Gas of ...
+        console.debug("ID: " + firstRow.ID + " Gas: " + firstRow.Gas + " Water: " + firstRow.Water);
+
+        //En hier doe ik da ff in een for each loopke
+        array_data.forEach(function(d) {
+                    console.debug("ID: " + d.ID + " Gas: " + d.Gas + " Water: " + d.Water);
+                }
+        );
+
+        //#Javascript #InfoVis #Balmerpeak #hashtag #FuckNetbeans
+
+    </script>
 </body>
 </html>
