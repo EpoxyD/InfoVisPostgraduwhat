@@ -1,7 +1,7 @@
-var margin = {top: 20, right: 20, bottom: 20, left: 20};
+var margin = {top: 20, right: 20, bottom: 20, left: 40};
 
 var outerWidth = 1400;
-var outerHeight = 600;
+var outerHeight = 400;
 
 var width = outerWidth - margin.left - margin.right;
 
@@ -12,7 +12,7 @@ var svg = d3.select("body").append("svg")
     .attr("height",outerHeight  )
     .style("border","solid black")
     .append("g")
-    .attr("transform", "translate(" + ( margin.left + 10 )+ "," + margin.top + ")");
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 d3.csv("Libertad_Electricity.csv", function(data) {
     data.forEach(function(d) {
