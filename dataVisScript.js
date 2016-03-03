@@ -1,7 +1,7 @@
 var margin = {top: 20, right: 20, bottom: 20, left: 20};
 
 var outerWidth = 1400;
-var outerHeight = 300;
+var outerHeight = 600;
 
 var width = outerWidth - margin.left - margin.right;
 
@@ -28,6 +28,7 @@ d3.csv("Libertad_Electricity.csv", function(data) {
     // Get the extrema of the consumption
     var minCons = d3.min(data, function(d) {return d.consumption;});
     var maxCons = d3.max(data, function(d) {return d.consumption;});
+    var midCons = minCons + (maxCons - minCons)/2;
 
     var blockWidth = width/168;
     var blockheight = height/52;
@@ -48,6 +49,9 @@ d3.csv("Libertad_Electricity.csv", function(data) {
     };
 
     var calculateXCoordinate = function (day, hour) {
+        // this two strange lines are to make sure sunday is put behind saturday instead of being the first in line
+        day = day-1;
+        if (day == -1) day = 6;
         return day * 24 * blockWidth + hour*blockWidth;
     };
 
@@ -56,7 +60,7 @@ d3.csv("Libertad_Electricity.csv", function(data) {
         return blockheight * calculateWeekNr(date)[1];
     };
 
-    var colorScale =d3.scale.linear().domain([minCons,maxCons]).range(["#E61A1A","#5C0A0A"]);
+    var colorScale =d3.scale.linear().domain([minCons, midCons,maxCons]).range(['green','yellow','red']);
 
     // create tooltip div
     var tooltipDiv = d3.select("body").append("div")
@@ -82,7 +86,7 @@ d3.csv("Libertad_Electricity.csv", function(data) {
         .on("mouseover",function(d) {
             tooltipDiv
                 .style("opacity",.9);
-            tooltipDiv.html("Week number = " + calculateWeekNr(d.date)[1] + "</br>" +"Day number = " + d.dayNumber + "</br>" + "Hour = " + d.hour + "</br>" + "Consumption = " + d.consumption)
+            tooltipDiv.html(d.date.toDateString() + "</br>" +"Week number = " + calculateWeekNr(d.date)[1] + "</br>" +"Day number = " + d.dayNumber + "</br>" + "Hour = " + d.hour + "</br>" + "Consumption = " + d.consumption)
                 .style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY) + "px");
         })
