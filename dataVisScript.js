@@ -7,15 +7,6 @@ var width = outerWidth - margin.left - margin.right;
 
 var height = outerHeight - margin.top - margin.bottom;
 
-var days = [
-     { "Day": "Monday", "DayNumber": 0},
-     { "Day": "Tuesday", "DayNumber": 1},
-     { "Day": "Wednesday", "DayNumber": 2},
-     { "Day": "Thursday", "DayNumber": 3},
-     { "Day": "Friday", "DayNumber": 4},
-     { "Day": "Saturday", "DayNumber": 5},
-     { "Day": "Sunday", "DayNumber": 6}];
-
 var svg = d3.select("body").append("svg")
     .attr("width",outerWidth)
     .attr("height",outerHeight  )
@@ -40,10 +31,31 @@ d3.csv("MOCK_DATA.csv", function(data) {
     var deltaCons = (maxCons - minCons);
 
     var blockWidth = width/168;
+    var blockheight = height/52;
+
+    var calculateWeekNr = function getWeekNumber(d) {
+        // Copy date so don't modify original
+        d = new Date(+d);
+        d.setHours(0,0,0);
+        // Set to nearest Thursday: current date + 4 - current day number
+        // Make Sunday's day number 7
+        d.setDate(d.getDate() + 4 - (d.getDay()||7));
+        // Get first day of year
+        var yearStart = new Date(d.getFullYear(),0,1);
+        // Calculate full weeks to nearest Thursday
+        var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+        // Return array of year and week number
+        return [d.getFullYear(), weekNo];
+    };
 
     var calculateXCoordinate = function (day, hour) {
         return day * 24 * blockWidth + hour*blockWidth;
-    }
+    };
+
+    var calculateYCoordinate = function (date) {
+        console.log(calculateWeekNr(date)[1]);
+        return blockheight * calculateWeekNr(date)[1];
+    };
 
     var colorScale =d3.scale.linear().domain([minCons,maxCons]).range(["#E61A1A","#5C0A0A"]);
 
@@ -60,10 +72,10 @@ d3.csv("MOCK_DATA.csv", function(data) {
             return calculateXCoordinate(d.dayNumber, d.hour);
         })
         .attr("y", function(d) {
-            return 0;
+            return calculateYCoordinate(d.date);
         })
         .attr("width", blockWidth)
-        .attr("height", 20)
+        .attr("height", blockheight)
         .style("opacity",.7)
         .style("fill", function(d){
             return colorScale(d.consumption);
@@ -71,7 +83,7 @@ d3.csv("MOCK_DATA.csv", function(data) {
         .on("mouseover",function(d) {
             tooltipDiv
                 .style("opacity",.9);
-            tooltipDiv.html("Day number = " + d.dayNumber + "</br>" + "Hour = " + d.hour + "</br>" + "Consumption = " + d.consumption)
+            tooltipDiv.html("Week number = " + calculateWeekNr(d.date)[1] + "</br>" +"Day number = " + d.dayNumber + "</br>" + "Hour = " + d.hour + "</br>" + "Consumption = " + d.consumption)
                 .style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY) + "px");
         })
