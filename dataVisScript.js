@@ -14,7 +14,7 @@ var svg = d3.select("body").append("svg")
     .append("g")
     .attr("transform", "translate(" + ( margin.left + 10 )+ "," + margin.top + ")");
 
-d3.csv("MOCK_DATA.csv", function(data) {
+d3.csv("Libertad_Electricity.csv", function(data) {
     data.forEach(function(d) {
         // hier map je de data uit de csv aan het "data" object (de '+' is om aan te geven dat het een getalwaarde is
         d.timeStamp = d.Timestamp;
@@ -26,9 +26,8 @@ d3.csv("MOCK_DATA.csv", function(data) {
     });
 
     // Get the extrema of the consumption
-    var minCons = d3.min(data, function(d) {return d.consumption;})
-    var maxCons = d3.max(data, function(d) {return d.consumption;})
-    var deltaCons = (maxCons - minCons);
+    var minCons = d3.min(data, function(d) {return d.consumption;});
+    var maxCons = d3.max(data, function(d) {return d.consumption;});
 
     var blockWidth = width/168;
     var blockheight = height/52;
