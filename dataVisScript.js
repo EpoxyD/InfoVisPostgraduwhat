@@ -43,7 +43,9 @@ d3.csv("MOCK_DATA.csv", function(data) {
 
     var x = d3.scale.linear()
         .domain([minCons,maxCons])
-        .range([width,0])
+        .range([width,0]);
+
+    var colorScale =d3.scale.linear().domain([minCons,maxCons]).range(["#E61A1A","#5C0A0A"]);
 
     svg.selectAll("rect")
         .data(data)
@@ -58,5 +60,7 @@ d3.csv("MOCK_DATA.csv", function(data) {
         .attr("width", blockWidth)
         .attr("height", 20)
         .style("opacity",.7)
-        .style("fill", "red");
+        .style("fill", function(d){
+            return colorScale(d.consumption);
+        });
 });
