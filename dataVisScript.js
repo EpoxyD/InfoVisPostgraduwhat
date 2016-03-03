@@ -1,7 +1,7 @@
 var margin = {top: 20, right: 20, bottom: 20, left: 20};
 
-var outerWidth = 1000;
-var outerHeight = outerWidth;
+var outerWidth = 1400;
+var outerHeight = 300;
 
 var width = outerWidth - margin.left - margin.right;
 
@@ -33,19 +33,15 @@ d3.csv("MOCK_DATA.csv", function(data) {
     var blockWidth = width/168;
 
     var calculateXCoordinate = function (day, hour) {
-        return blockWidth * (day+1) * hour - blockWidth;
+        return day * 24 * blockWidth + hour*blockWidth;
     }
 
-    // Set the scales
-    var y = d3.scale.linear()
-        .domain([minCons,maxCons])
-        .range([height,0]);
-
-    var x = d3.scale.linear()
-        .domain([minCons,maxCons])
-        .range([width,0]);
-
     var colorScale =d3.scale.linear().domain([minCons,maxCons]).range(["#E61A1A","#5C0A0A"]);
+
+    // create tooltip div
+    var tooltipDiv = d3.select("body").append("div")
+        .attr("class","tooltip")
+        .style("opacity",0);
 
     svg.selectAll("rect")
         .data(data)
@@ -62,5 +58,16 @@ d3.csv("MOCK_DATA.csv", function(data) {
         .style("opacity",.7)
         .style("fill", function(d){
             return colorScale(d.consumption);
-        });
+            })
+        .on("mouseover",function(d) {
+            tooltipDiv
+                .style("opacity",.9);
+            tooltipDiv.html("Day number = " + d.dayNumber + "</br>" + "Hour = " + d.hour + "</br>" + "Consumption = " + d.consumption)
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY) + "px");
+        })
+            .on("mouseout", function(d) {
+                tooltipDiv
+                    .style("opacity",0);
+            });
 });
