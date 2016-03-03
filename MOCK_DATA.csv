@@ -1,4 +1,4 @@
-TS,Cons,SensID,Token,FluksoID,SensType,Building,Type
+Timestamp,Consumption,SensID,Token,FluksoID,SensType,Building,Type
 2015-05-25 10:21:58,2926,0eaSDIJEs,,FL0062234,El,G01Libertad,Cafe
 2015-08-26 18:54:43,2606,0eaSDIJEs,,FL0062234,El,G01Libertad,Cafe
 2015-08-02 17:06:00,1400,0eaSDIJEs,,FL0062234,El,G01Libertad,Cafe
