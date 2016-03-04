@@ -10,11 +10,11 @@ var height = outerHeight - margin.top - margin.bottom;
 var svg = d3.select("body").append("svg")
     .attr("width",outerWidth)
     .attr("height",outerHeight  )
-    .style("border","solid black")
+    //.style("border","solid black")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.csv("Libertad_Electricity.csv", function(data) {
+d3.csv("RestaurantCSV/WabiSabi_Gas.csv", function(data) {
     data.forEach(function(d) {
         // hier map je de data uit de csv aan het "data" object (de '+' is om aan te geven dat het een getalwaarde is
         d.timeStamp = d.Timestamp;
@@ -24,14 +24,6 @@ d3.csv("Libertad_Electricity.csv", function(data) {
         d.hour = d.date.getHours();
         d.dayNumber = d.date.getDay();
     });
-
-    // Get the extrema of the consumption
-    var minCons = d3.min(data, function(d) {return d.consumption;});
-    var maxCons = d3.max(data, function(d) {return d.consumption;});
-    var midCons = minCons + (maxCons - minCons)/2;
-
-    var blockWidth = width/168;
-    var blockheight = height/52;
 
     var calculateWeekNr = function getWeekNumber(d) {
         // Copy date so don't modify original
@@ -48,6 +40,26 @@ d3.csv("Libertad_Electricity.csv", function(data) {
         return [d.getFullYear(), weekNo];
     };
 
+    // Get the extrema of the consumption
+    var minCons = d3.min(data, function(d) {return d.consumption;});
+    var maxCons = d3.max(data, function(d) {return d.consumption;});
+    var midCons = minCons + (maxCons - minCons)/2;
+
+    //Start- en lastYear
+    var startYear = d3.min(data, function(d){return d.date.getYear() + 1900;});
+    var lastYear = d3.max(data, function(d){return d.date.getYear() + 1900;});
+
+    //first measured month
+    var firstWeek = d3.min(data, function(d){
+        if (d.date.getYear() + 1900 == startYear){
+            return calculateWeekNr(d.date)[1];
+        }
+    });
+
+    var blockWidth = width/168;
+    var blockheight = height/52;
+    var lineheight = 2;
+
     var calculateXCoordinate = function (day, hour) {
         // this two strange lines are to make sure sunday is put behind saturday instead of being the first in line
         day = day-1;
@@ -56,8 +68,16 @@ d3.csv("Libertad_Electricity.csv", function(data) {
     };
 
     var calculateYCoordinate = function (date) {
-        console.log(calculateWeekNr(date)[1]);
-        return blockheight * calculateWeekNr(date)[1];
+
+        var yearOffset = date.getFullYear() - startYear;
+
+        if (yearOffset == 0){
+            return blockheight * (calculateWeekNr(date)[1] - firstWeek) + 20;
+        }
+        else {
+            return blockheight * (calculateWeekNr(date)[1] + 52 - firstWeek + (yearOffset - 1) * 52) + yearOffset * lineheight + 30 ;
+        }
+
     };
 
     var colorScale =d3.scale.linear().domain([minCons, midCons,maxCons]).range(['green','yellow','red']);
@@ -90,8 +110,53 @@ d3.csv("Libertad_Electricity.csv", function(data) {
                 .style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY) + "px");
         })
-            .on("mouseout", function(d) {
-                tooltipDiv
-                    .style("opacity",0);
-            });
+        .on("mouseout", function(d) {
+            tooltipDiv
+                .style("opacity",0);
+        });
+
+    var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
+
+    svg.selectAll('text')
+        .data(weekdays)
+        .enter()
+        .append('text')
+        .attr('y', 0)
+        .attr('x', function(d){
+            return d[1] *24 * blockWidth + 12 * blockWidth;
+        })
+        .attr('anchor', 'center')
+        .text(function(d){
+            return d[0];
+        });
+
+    console.log(lastYear-startYear);
+
+    for(var i = 0; i < (lastYear - startYear + 1); i++){
+
+        svg.append('rect')
+            .attr('x', -35 )
+            .attr('y', function(){
+                    if (i == 0) {
+                        return 20 - lineheight;
+                    }
+                    else {
+                        return 30 + (53 - firstWeek) * blockheight;
+                    }
+            })
+            .attr('height', lineheight)
+            .attr('width', width + 35);
+
+        svg.append('text')
+            .attr('x', -35)
+            .attr('y', function(){
+                if (i == 0) {
+                    return 35 - lineheight;
+                }
+                else {
+                    return 45 + (53 - firstWeek) * blockheight;
+                }
+            })
+            .text(startYear + i);
+    }
 });
