@@ -13,6 +13,12 @@ var svg = d3.select("body").append("svg")
     //.style("border","solid black")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    /*.on('mouseover', function(){
+        d3.select(this)
+            .transition()
+            .duration(1000)
+            .attr("transform","scale(0.5)");
+    });*/
 
 d3.csv("RestaurantCSV/WabiSabi_Gas.csv", function(data) {
     data.forEach(function(d) {
@@ -75,7 +81,12 @@ d3.csv("RestaurantCSV/WabiSabi_Gas.csv", function(data) {
             return blockheight * (calculateWeekNr(date)[1] - firstWeek) + 20;
         }
         else {
-            return blockheight * (calculateWeekNr(date)[1] + 52 - firstWeek + (yearOffset - 1) * 52) + yearOffset * lineheight + 30 ;
+            if (calculateWeekNr(date)[1] == 53){
+                return blockheight * ( 53 - firstWeek + (yearOffset - 1) * 52) + yearOffset * lineheight + 30 ;
+            }
+            else {
+                return blockheight * (calculateWeekNr(date)[1] + 52 - firstWeek + (yearOffset - 1) * 52) + yearOffset * lineheight + 30;
+            }
         }
 
     };
