@@ -7,20 +7,33 @@ var width = outerWidth - margin.left - margin.right;
 
 var height = outerHeight - margin.top - margin.bottom;
 
+/**
+ *  Street view
+ */
+
+var svg_houses = d3.select('body').append('svg')
+    .attr('width', outerWidth)
+    .attr('height', outerHeight)
+    .append('g')
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var houses = {
+    restaurant: function(h, w){
+
+    }
+};
+
+/**
+ *  Carpet Plot
+ */
+
 var svg = d3.select("body").append("svg")
     .attr("width",outerWidth)
-    .attr("height",outerHeight  )
-    //.style("border","solid black")
+    .attr("height",outerHeight)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    /*.on('mouseover', function(){
-        d3.select(this)
-            .transition()
-            .duration(1000)
-            .attr("transform","scale(0.5)");
-    });*/
 
-d3.csv("RestaurantCSV/WabiSabi_Gas.csv", function(data) {
+d3.csv("RestaurantCSV/Mykene_Gas.csv", function(data) {
     data.forEach(function(d) {
         // hier map je de data uit de csv aan het "data" object (de '+' is om aan te geven dat het een getalwaarde is
         d.timeStamp = d.Timestamp;
@@ -136,7 +149,7 @@ d3.csv("RestaurantCSV/WabiSabi_Gas.csv", function(data) {
         .attr('x', function(d){
             return d[1] *24 * blockWidth + 12 * blockWidth;
         })
-        .attr('anchor', 'center')
+        .attr('text-anchor', 'middle')
         .text(function(d){
             return d[0];
         });
