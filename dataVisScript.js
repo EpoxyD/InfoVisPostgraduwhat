@@ -1,368 +1,328 @@
-/*
- *  Het volgende deel is voor het weergeven van de huisjes
- *  Alle kleuren(HSL) hebben S=38% en L=63%
+var margin = {top: 20, right: 20, bottom: 20, left: 40};
+
+var outerWidth = 1400;
+var outerHeight = 400;
+
+var width = outerWidth - margin.left - margin.right;
+
+var height = outerHeight - margin.top - margin.bottom;
+
+/**
+ *  Carpet Plot
  */
 
-//Maak een nieuw svg veld aan
-var svg_width = 1200;
-var svg_height = 600;
+var carpetplot = function(name){
+    d3.select("#carpetplot").remove();
+    d3.select("#tooltip").remove();
 
-svg = d3.select("body").append("svg:svg").attr("width", svg_width).attr("height", svg_height).attr('id', 'svg');
+    var svg = d3.select("body").append("svg")
+        .attr("width",outerWidth)
+        .attr("height",outerHeight)
+        .attr("id", "carpetplot")
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-//data van de restaurants
+    console.log(d3.csv("RestaurantCSV/" + name +".csv"));
+    d3.csv("RestaurantCSV/" + name +"_Gas.csv", function(data) {
+        data.forEach(function(d) {
+            // hier map je de data uit de csv aan het "data" object (de '+' is om aan te geven dat het een getalwaarde is
+            d.timeStamp = d.Timestamp;
+            d.consumption = +d.Consumption;
+            d.dateParts = d.Timestamp.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/);
+            d.date = new Date(d.dateParts[1], d.dateParts[2], d.dateParts[3], d.dateParts[4], d.dateParts[5], d.dateParts[6], d.dateParts[6]);
+            d.hour = d.date.getHours();
+            d.dayNumber = d.date.getDay();
+        });
+
+        var calculateWeekNr = function getWeekNumber(d) {
+            // Copy date so don't modify original
+            d = new Date(+d);
+            d.setHours(0,0,0);
+            // Set to nearest Thursday: current date + 4 - current day number
+            // Make Sunday's day number 7
+            d.setDate(d.getDate() + 4 - (d.getDay()||7));
+            // Get first day of year
+            var yearStart = new Date(d.getFullYear(),0,1);
+            // Calculate full weeks to nearest Thursday
+            var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+            // Return array of year and week number
+            return [d.getFullYear(), weekNo];
+        };
+
+        // Get the extrema of the consumption
+        var minCons = d3.min(data, function(d) {return d.consumption;});
+        var maxCons = d3.max(data, function(d) {return d.consumption;});
+        var midCons = minCons + (maxCons - minCons)/2;
+
+        //Start- en lastYear
+        var startYear = d3.min(data, function(d){return d.date.getYear() + 1900;});
+        var lastYear = d3.max(data, function(d){return d.date.getYear() + 1900;});
+
+        //first measured month
+        var firstWeek = d3.min(data, function(d){
+            if (d.date.getYear() + 1900 == startYear){
+                return calculateWeekNr(d.date)[1];
+            }
+        });
+
+        var blockWidth = width/168;
+        var blockheight = height/52;
+        var lineheight = 2;
+
+        var calculateXCoordinate = function (day, hour) {
+            // this two strange lines are to make sure sunday is put behind saturday instead of being the first in line
+            day = day-1;
+            if (day == -1) day = 6;
+            return day * 24 * blockWidth + hour*blockWidth;
+        };
+
+        var calculateYCoordinate = function (date) {
+
+            var yearOffset = date.getFullYear() - startYear;
+
+            if (yearOffset == 0){
+                return blockheight * (calculateWeekNr(date)[1] - firstWeek) + 20;
+            }
+            else {
+                if (calculateWeekNr(date)[1] == 53){
+                    return blockheight * ( 53 - firstWeek + (yearOffset - 1) * 52) + yearOffset * lineheight + 30 ;
+                }
+                else {
+                    return blockheight * (calculateWeekNr(date)[1] + 52 - firstWeek + (yearOffset - 1) * 52) + yearOffset * lineheight + 30;
+                }
+            }
+
+        };
+
+        var colorScale =d3.scale.linear().domain([minCons, midCons,maxCons]).range(['green','yellow','red']);
+
+        // create tooltip div
+        var tooltipDiv = d3.select("body").append("div")
+            .attr("class","tooltip")
+            .attr("id", "tooltip")
+            .style("opacity",0);
+
+        svg.selectAll("rect")
+            .data(data)
+            .enter()
+            .append("rect")
+            .attr("x", function(d) {
+                return calculateXCoordinate(d.dayNumber, d.hour);
+            })
+            .attr("y", function(d) {
+                return calculateYCoordinate(d.date);
+            })
+            .attr("width", blockWidth)
+            .attr("height", blockheight)
+            .style("opacity",.7)
+            .style("fill", function(d){
+                return colorScale(d.consumption);
+            })
+            .on("mouseover",function(d) {
+                var day;
+                if(d.date.getDay() == 0){
+                    day = 'Zondag';
+                }
+                else{
+                    day = weekdays[d.date.getDay()-1][0];
+                }
+                tooltipDiv
+                    .style("opacity",.9);
+                tooltipDiv.html(d.date.toDateString() + "</br>Time: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Consumption = " + Math.round(d.consumption))
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY) + "px");
+
+            })
+            .on("mouseout", function(d) {
+                tooltipDiv
+                    .style("opacity",0);
+            });
+
+        var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
+
+        svg.selectAll('text')
+            .data(weekdays)
+            .enter()
+            .append('text')
+            .attr('y', 0)
+            .attr('x', function(d){
+                return d[1] *24 * blockWidth + 12 * blockWidth;
+            })
+            .attr('text-anchor', 'middle')
+            .text(function(d){
+                return d[0];
+            });
+
+        console.log(lastYear-startYear);
+
+        for(var i = 0; i < (lastYear - startYear + 1); i++){
+
+            svg.append('rect')
+                .attr('x', -35 )
+                .attr('y', function(){
+                    if (i == 0) {
+                        return 20 - lineheight;
+                    }
+                    else {
+                        return 30 + (53 - firstWeek) * blockheight;
+                    }
+                })
+                .attr('height', lineheight)
+                .attr('width', width + 35);
+
+            svg.append('text')
+                .attr('x', -35)
+                .attr('y', function(){
+                    if (i == 0) {
+                        return 35 - lineheight;
+                    }
+                    else {
+                        return 45 + (53 - firstWeek) * blockheight;
+                    }
+                })
+                .text(startYear + i);
+        }
+    });
+}
+
+/**
+ *  Street view
+ */
+
 var restaurants = [
     {
-        type: 'house_2',
-        data: [
-            {
-                gas: 400,
-                water: 300,
-                electric: 200
-            },
-            {
-                gas: 800,
-                water: 400,
-                electric: 500
-            },
-            {
-                gas: 200,
-                water: 500,
-                electric: 300
-            }
-        ]
+        id: 0,
+        naam: 'WabiSabi',
+        type: 'restaurant',
+        max: 5479.025764895603
     },
     {
-        type: 'house_2',
-        data: [
-            {
-                gas: 400,
-                water: 300,
-                electric: 200
-            },
-            {
-                gas: 800,
-                water: 400,
-                electric: 500
-            },
-            {
-                gas: 200,
-                water: 500,
-                electric: 300
-            }
-        ]
+        id: 1,
+        naam: 'MusiCafe',
+        type: 'café',
+        max: 11587.807881773915
     },
     {
-        type: 'house_1',
-        data: [
-            {
-                gas: 300,
-                water: 500,
-                electric: 300
-            },
-            {
-                gas: 300,
-                water: 400,
-                electric: 500
-            },
-            {
-                gas: 600,
-                water: 200,
-                electric: 100
-            }
-        ]
+        id: 2,
+        naam: 'Libertad',
+        type: 'café',
+        max: 903410
     },
     {
-        type: 'house_1',
-        data: [
-            {
-                gas: 500,
-                water: 400,
-                electric: 500
-            },
-            {
-                gas: 200,
-                water: 500,
-                electric: 300
-            },
-            {
-                gas: 600,
-                water: 200,
-                electric: 100
-            }
-        ]
+        id: 3,
+        naam: 'Tr3s',
+        type: 'restaurant',
+        max: 8436.770186335314
     },
     {
-        type: 'house_2',
-        data: [
-            {
-                gas: 600,
-                water: 200,
-                electric: 100
-            },
-            {
-                gas: 300,
-                water: 400,
-                electric: 500
-            },
-            {
-                gas: 200,
-                water: 500,
-                electric: 300
-            }
-        ]
+        id: 4,
+        naam: 'Aquasanta',
+        type: 'restaurant',
+        max: 890.5
     },
     {
-        type: 'house_1',
-        data: [
-            {
-                gas: 500,
-                water: 400,
-                electric: 500
-            },
-            {
-                gas: 200,
-                water: 500,
-                electric: 300
-            },
-            {
-                gas: 600,
-                water: 200,
-                electric: 100
-            }
-        ]
-    },
-    {
-        type: 'house_2',
-        data: [
-            {
-                gas: 700,
-                water: 400,
-                electric: 500
-            },
-            {
-                gas: 300,
-                water: 500,
-                electric: 300
-            },
-            {
-                gas: 400,
-                water: 200,
-                electric: 100
-            }
-        ]
+        id: 5,
+        naam: 'Troubadour',
+        type: 'restaurant',
+        max: 468000
     }
 ];
 
-//Bepaal hoe de verschillende soorten huisjes er zullen uit zien
+var svg_houses = d3.select('body').append('svg')
+    .attr('width', outerWidth)
+    .attr('height', outerHeight)
+    .append('g')
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
 var houses = {
-    house_1: function(h, w, x, y) {
-        //Elke huisje kan een ID krijgen en zo aangesproken worden
-        var id = 0;
+    restaurant: function(h, w){
 
-        //Definieer de punten die dan een shape zullen vormen
-        var points_outline = [[x, h + y], [w + x, h + y], [w + x, y],
-            [x, y], [x, h + y]];
-        var points_door = [[(w * 0.10) + x , h + y], [(w * 0.10) + x, (h - (w * 0.5)) + y],
-            [(w * 0.30) + x, (h - (w * 0.5)) + y], [(w * 0.30) + x , h + y], [(w * 0.10) + x , h + y]];
-        var points_window =  [[(w * 0.50) + x, (h - (w * 0.5)) + y], [(w * 0.90) + x, (h - (w * 0.5)) + y],
-            [(w * 0.90) + x, (h - (w * 0.2)) + y], [(w * 0.50) + x, (h - (w * 0.2)) + y], [(w * 0.50) + x, (h - (w * 0.5)) + y]];
-        var points_top = [[x, y], [x + w, y], [x + w, (w * 0.06) + y], [x, (w * 0.06) + y],
-            [x, y]];
-
-        var arc = d3.svg.arc()
-            .innerRadius(0)
-            .outerRadius(w * 0.10)
-            .startAngle(Math.PI/2)
-            .endAngle(Math.PI + Math.PI/2);
-
-
-        //Verbind de punten
-        var outline =  d3.svg.line()(points_outline);
-        var door = d3.svg.line()(points_door);
-        var window = d3.svg.line()(points_window);
-        var top = d3.svg.line()(points_top);
-
-        //Maak een groep die al deze vormen bundeld
         var e =  document.createElementNS(d3.ns.prefix.svg,'g'),
-            g = d3.select(e).attr('id', id).
-            attr('class','node');
-        g.append('svg:path')
-            .attr('d', outline)
-            .attr("fill", "#C59B7D");
-        g.append('svg:path')
-            .attr('d', door)
-            .attr('fill', "#7DADC5");
-        g.append('svg:path')
-            .attr('d', window)
-            .attr('fill', "#FFFFFF");
+            g = d3.select(e)
+                .attr('class','node');
 
-        //voeg die boogstkes vanboven toe
-        g.append('svg:path')
-            .attr('d', top)
-            .attr('fill', "#A9C57D");
-        var xpos = x + w * 0.10;
-        var ypos = (w * 0.05) + y;
-        for (var i = 0; i < 5; i++) {
-            g.append("path")
-                .attr("d", arc)
-                .attr('fill', "#A9C57D")
-                .attr("transform", "translate(" + xpos + "," + ypos +")");
-            xpos = xpos +  w * 0.20;
-        }
+        //Create first floor
+        g.append('rect')
+            .attr('y', height - h)
+            .attr('x', 0)
+            .attr('height', h)
+            .attr('width', w)
+            .attr('fill', '#359FD4')
+            .attr('id', 'house');
+        //door
+        g.append('rect')
+            .attr('y', height - (w * 0.5))
+            .attr('x', w * 0.1)
+            .attr('height', (w * 0.5))
+            .attr('width', (w * 0.2))
+            .attr('fill', '#35D49F');
+        //window
+        g.append('rect')
+            .attr('y', height - (w * 0.5))
+            .attr('x', w * 0.5)
+            .attr('height', (w * 0.3))
+            .attr('width', (w * 0.4))
+            .attr('fill', '#FFFFFF');
 
         return g;
-
     },
-    house_2: function(h, w, x, y) {
-        //Elke huisje kan een ID krijgen en zo aangesproken worden
-        var id = 0;
+    café:function(h, w){
 
-        //Definieer de punten die dan een shape zullen vormen
-        var points_outline = [[x, h + y], [w + x, h + y], [w + x, (50) + y],
-            [(w/2) + x, y], [x, (50) + y], [x, h + y]];
-        var points_door = [[(w * 0.10) + x , h + y], [(w * 0.10) + x, (h - (w * 0.5)) + y],
-            [(w * 0.30) + x, (h - (w * 0.5)) + y], [(w * 0.30) + x , h + y], [(w * 0.10) + x , h + y]];
-        var points_window =  [[(w * 0.50) + x, (h - (w * 0.5)) + y], [(w * 0.90) + x, (h - (w * 0.5)) + y],
-            [(w * 0.90) + x, (h - (w * 0.2)) + y], [(w * 0.50) + x, (h - (w * 0.2)) + y], [(w * 0.50) + x, (h - (w * 0.5)) + y]];
-
-        //Verbind de punten
-        var outline =  d3.svg.line()(points_outline);
-        var door = d3.svg.line()(points_door);
-        var window = d3.svg.line()(points_window);
-
-        //Maak een groep die al deze vormen bundeld
         var e =  document.createElementNS(d3.ns.prefix.svg,'g'),
-            g = d3.select(e).attr('id', id).
-            attr('class','node');
-        g.append('svg:path')
-            .attr('d', outline)
-            .attr("fill", "#A9C57D");
-        g.append('svg:path')
-            .attr('d', door)
-            .attr('fill', "#7DADC5");
-        g.append('svg:path')
-            .attr('d', window)
-            .attr('fill', "#FFFFFF");
+            g = d3.select(e)
+                .attr('class','node');
+
+        //Create first floor
+        g.append('rect')
+            .attr('y', height - h)
+            .attr('x', 0)
+            .attr('height', h)
+            .attr('width', w)
+            .attr('fill', '#D4BA35')
+            .attr('id', 'house');
+        //door
+        g.append('rect')
+            .attr('y', height - (w * 0.5))
+            .attr('x', w * 0.1)
+            .attr('height', (w * 0.5))
+            .attr('width', (w * 0.2))
+            .attr('fill', '#D46A35');
+        //window
+        g.append('rect')
+            .attr('y', height - (w * 0.5))
+            .attr('x', w * 0.5)
+            .attr('height', (w * 0.3))
+            .attr('width', (w * 0.4))
+            .attr('fill', '#FFFFFF');
 
         return g;
     }
 };
 
+var x_pos = d3.scale.linear().domain([0, 9]).range([0, width]);
+// De hoogte moet nog gescaled worden naar de hoogste waarde
+var y_scale = d3.scale.linear().domain([0, d3.max(restaurants, function(d) { return d.max; })]).
+rangeRound([0, height]);
 
-//get maximum gas value
-var maxGas = d3.max(restaurants, function(d) {
-    return d3.max(d.data, function(g){
-        return g.gas;
-    });
-} );
+y_scale = d3.scale.log()
+    .base(Math.E)
+    .domain([Math.exp(0), d3.max(restaurants, function(d) { return d.max; })])
+    .range([0, height]);
 
-//get maximum water value
-var maxWater = d3.max(restaurants, function(d) {
-    return d3.max(d.data, function(g){
-        return g.water;
-    });
-} );
-
-//get maximum Electric value
-var maxElectric = d3.max(restaurants, function(d) {
-    return d3.max(d.data, function(g){
-        return g.electric;
-    });
-} );
-
-//Add the houses to the svg
-var NrRestaurants = restaurants.length;
-var widthPerRest = ((svg_width - 60) / NrRestaurants) * (3/4);
-var widthPerSpace = ((svg_width - 60) / NrRestaurants) * (1/4);
-ofset = 30;
-
-var average = 0;
-
-svg.selectAll('g')
-    .data(restaurants)
-    .enter()
-    .append(function(d) {
-        var rest_height = d.data[0].gas / maxGas*svg_height;
-        average = average + rest_height;
-        var y = svg_height - rest_height;
-        var x = ofset;
-        ofset = ofset + widthPerRest + widthPerSpace;
-        var v = houses[d.type](rest_height, widthPerRest, x, y);
-        return v.node();
-    });
-    //.on('mouseover', );
-
-average = average/NrRestaurants;
-
-//svg.append(houses['goal'](average, 5, svg_height - average));
-
-//svg.append('rect').attr('x', 50).attr('y', 50).attr('height', 50).attr('width', 50);
-
-var x = 5;
-var h = average;
-var y = svg_height - h;
-//Definieer de punten die dan een shape zullen vormen
-var points_pole_1 = [[x, h + y], [x + 10, h + y], [x + 10, y], [x, y], [x, h + y]];
-var points_pole_2 = [[svg_width - x - 10, h + y], [svg_width - x, h + y], [svg_width - x, y], [svg_width - x -10, y], [svg_width - x -10, h + y]];
-var points_rope = [[x, y - 1], [svg_width - x, y - 1], [svg_width - x, y + 1], [x, y + 1], [x, y - 1]];
-
-//Verbind de punten
-var pole_1 =  d3.svg.line()(points_pole_1);
-var pole_2 =  d3.svg.line()(points_pole_2);
-var rope   =  d3.svg.line()(points_rope);
-
-//Ballen op de palen
-var arc = d3.svg.arc()
-    .innerRadius(0)
-    .outerRadius(10)
-    .startAngle(0)
-    .endAngle(Math.PI * 2);
-
-svg.append('svg:path')
-    .attr('d', pole_1)
-    .attr("fill", "#B6B6B6");
-svg.append('svg:path')
-    .attr('d', pole_2)
-    .attr("fill", "#B6B6B6");
-svg.append('svg:path')
-    .attr('d', rope)
-    .attr("fill", "#555555");
-
-var xpos = (x + 5);
-for (var i = 0; i < 2; i++) {
-    svg.append("path")
-        .attr("d", arc)
-        .attr('fill', "#B6B6B6")
-        .attr("transform", "translate(" + xpos + "," + (y - 10) + ")");
-    xpos = (svg_width - x - 5);
-}
-
-//space between flags is 40 and flags are 20 wide
-var ofset = - 10;
-var color = 0;
-
-for (i = 0; i < 20; i++) {
-    var points_triangle = [[x + 50 + ofset, y + 1], [x + 70 + ofset, y + 1], [x + 35 + ofset, y + 20], [x + 50 + ofset, y + 1]];
-    var triangle   =  d3.svg.line()(points_triangle);
-    var c = "#C57DC5";
-    switch(color) {
-        case 0:
-            c = "#C57DC5";
-            color = 1;
-            break;
-        case 1:
-            c = "#957DC5";
-            color = 2;
-            break;
-        case 2:
-            c = "#7DC5C5";
-            color = 0;
-            break;
-        default:
-            c = "#C57DC5";
-    }
-    svg.append("path")
-        .attr("d", triangle)
-        .attr('fill', c);
-    ofset = ofset + 59;
-}
+restaurants.forEach(function(data){
+    svg_houses.append(function(){
+            var v;
+            if (data.type == 'café'){
+                v = houses.café(y_scale(data.max), 100);
+            }
+            else{
+                v = houses.restaurant(y_scale(data.max), 100);
+            }
+            return v.node();
+        })
+        .attr('id', data.naam)
+        .attr("transform", "translate(" + x_pos(data.id) + "," + 0 + ")")
+        .on('click', function(d){
+            carpetplot(this.id);
+        });
+});
