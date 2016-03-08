@@ -325,6 +325,7 @@ svg_houses.selectAll('g')
     .attr('id', function(d){return d.id;})
     .attr("transform", function(d){return "translate(" + x_pos(d.id) + "," + 0 + ")";})
     .on('click', function(d){
+
         for(var i = 0; i < restaurants.length; i++) {
             if ( i != d.id) {
                 d3.select('#door' + i )
@@ -347,6 +348,37 @@ svg_houses.selectAll('g')
                     .style('opacity', 1);
             }
         }
+
+        var coords = d3.mouse(this);
+        console.log(coords);
+
+        for (var i = 0; i < 3 ; i++){
+            var wolk = d3.select('#cloud' + i);
+            // get position
+            var currentx = d3.transform(wolk.attr("transform")).translate[0];
+            var currenty = d3.transform(wolk.attr("transform")).translate[1];
+
+            var targetx = x_pos(d.id) + coords[0] - 60;
+            var targety = coords[1];
+
+            if (i == 1) {
+                targetx = x_pos(d.id) + coords[0] + 10;
+                targety = coords[1] + 30;
+            }
+            else if (i == 2) {
+                targetx = x_pos(d.id) + coords[0];
+                targety = coords[1] - 30;
+            }
+
+            wolk.transition()
+                .duration(500 * (i+1))
+                .attr('transform', function(){
+                    return "translate(" + targetx + "," + targety + ")";
+                });
+
+            console.log(x_pos(d.id) + targetx);
+        }
+
         restaurantName = d.naam;
         carpetplot(restaurantName, meterType);
     });
@@ -397,6 +429,10 @@ var cloud = function(w, h, text, id){
 
     return g;
 };
+
+/**
+ *  Append the clouds
+ */
 
 svg_houses.append(function(){
         var v = cloud(80, 40, 'Electricity', 2);
