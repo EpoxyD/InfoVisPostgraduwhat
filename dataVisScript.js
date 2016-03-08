@@ -354,9 +354,6 @@ svg_houses.selectAll('g')
 
         for (var i = 0; i < 3 ; i++){
             var wolk = d3.select('#cloud' + i);
-            // get position
-            var currentx = d3.transform(wolk.attr("transform")).translate[0];
-            var currenty = d3.transform(wolk.attr("transform")).translate[1];
 
             var targetx = x_pos(d.id) + coords[0] - 60;
             var targety = coords[1];
@@ -371,12 +368,10 @@ svg_houses.selectAll('g')
             }
 
             wolk.transition()
-                .duration(500 * (i+1))
+                .duration(600 * (i+1))
                 .attr('transform', function(){
                     return "translate(" + targetx + "," + targety + ")";
                 });
-
-            console.log(x_pos(d.id) + targetx);
         }
 
         restaurantName = d.naam;
