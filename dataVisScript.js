@@ -10,6 +10,12 @@ var height = outerHeight - margin.top - margin.bottom;
 var restaurantName;
 var meterType = 'Gas';
 
+var myBlue = "#324aff";
+var myCyan = "#32ffff";
+var myGreen = "#32ff32";
+var myYellow = "#ffff32";
+var myRed = "#ff3232";
+
 /**
  *  Carpet Plot
  */
@@ -55,7 +61,7 @@ var carpetplot = function(name, type){
         // Get the extrema of the consumption
         var minCons = d3.min(data, function(d) {return d.consumption;});
         var maxCons = d3.max(data, function(d) {return d.consumption;});
-        var midCons = minCons + (maxCons - minCons)/2;
+
 
         //Start- en lastYear
         var startYear = d3.min(data, function(d){return d.date.getYear() + 1900;});
@@ -100,7 +106,10 @@ var carpetplot = function(name, type){
 
         };
 
-        var colorScale =d3.scale.linear().domain([minCons, midCons,maxCons]).range(['green','yellow','red']);
+        var oneFifth = (maxCons - minCons)/5;
+        var colorScale =d3.scale.linear()
+            .domain([minCons,(minCons+oneFifth),(minCons+2*oneFifth),(minCons+3*oneFifth),(minCons+4*oneFifth) ,maxCons])
+            .range([myBlue,myCyan,myGreen,myYellow,myRed]);
 
         // create tooltip div
         var tooltipDiv = d3.select("body").append("div")
