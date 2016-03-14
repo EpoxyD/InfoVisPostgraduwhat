@@ -32,7 +32,7 @@ var carpetplot = function(name, type){
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    d3.csv("RestaurantCSV/" + name + "_" + type + ".csv", function(data) {
+    d3.csv("DataSet/" + name + "_" + type + ".csv", function(data) {
         data.forEach(function(d) {
             // hier map je de data uit de csv aan het "data" object (de '+' is om aan te geven dat het een getalwaarde is
             d.timeStamp = d.Timestamp;
