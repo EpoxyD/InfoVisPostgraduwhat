@@ -106,10 +106,10 @@ var carpetplot = function(name, type){
 
         };
 
-        var oneFifth = (maxCons - minCons)/5;
+        var half = (maxCons - minCons)/2;
         var colorScale =d3.scale.linear()
-            .domain([minCons,(minCons+oneFifth),(minCons+2*oneFifth),(minCons+3*oneFifth),(minCons+4*oneFifth) ,maxCons])
-            .range([myBlue,myCyan,myGreen,myYellow,myRed]);
+            .domain([minCons,(minCons+half) ,maxCons])
+            .range(["green","yellow","red"]);
 
         // create tooltip div
         var tooltipDiv = d3.select("body").append("div")
