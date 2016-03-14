@@ -17,7 +17,7 @@ var CarpetPlotConsumption = {
 
     showDataFromFileName: function (dataSetFileName) {
 
-        var margin = {top: 20, right: 20, bottom: 20, left: 40};
+        var margin = {top: 20, right: 20, bottom: 20, left: 70};
 
         var outerWidth = 1400;
         var outerHeight =400;
@@ -225,7 +225,7 @@ var CarpetPlotConsumption = {
             for(var i = 0; i < (lastYear - startYear + 1); i++){
 
                 svg.append('rect')
-                    .attr('x', -35 )
+                    .attr('x', -65 )
                     .attr('y', function(){
                         if (i == 0) {
                             return 20 - lineheight;
@@ -238,7 +238,7 @@ var CarpetPlotConsumption = {
                     .attr('width', width + 35);
 
                 svg.append('text')
-                    .attr('x', -35)
+                    .attr('x', -65)
                     .attr('y', function(){
                         if (i == 0) {
                             return 35 - lineheight;
@@ -248,6 +248,36 @@ var CarpetPlotConsumption = {
                         }
                     })
                     .text(startYear + i);
+            }
+
+            //Maandnamen
+            var monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ];
+
+            var firstDay = data[0].date.getDate();
+
+            var firstMonth = data[0].date.getMonth();
+
+            var firstMonth_offset = (30 - firstDay) % 7;
+            console.log(firstMonth_offset);
+
+            for(var i = firstMonth; i < monthNames.length; i++ ){
+                svg.append('text')
+                    .attr('x', -20)
+                    .attr('y', ((firstMonth_offset * blockheight / 2) + (i - firstMonth) * 4 * blockheight) + 30 )
+                    .attr('font-size', 10)
+                    .text(monthNames[i]);
+            }
+
+            firstMonth_offset = ((firstMonth_offset * blockheight / 2) + (11 - firstMonth) * 4 * blockheight) + 30;
+
+            for(var i = 0; i < 3; i++ ){
+                svg.append('text')
+                    .attr('x', -20)
+                    .attr('y', (firstMonth_offset + i * 4 * blockheight + blockheight) + 30 )
+                    .attr('font-size', 10)
+                    .text(monthNames[i]);
             }
         });
     }

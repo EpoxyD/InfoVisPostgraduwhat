@@ -8,7 +8,7 @@ var RestaurantHouses = {
 
     showHouses : function () {
 
-        var margin = {top: 20, right: 20, bottom: 20, left: 40};
+        var margin = {top: 20, right: 20, bottom: 20, left: 60};
 
         var outerWidth = 1400;
         var outerHeight =400;
@@ -212,7 +212,7 @@ var RestaurantHouses = {
                 }
 
                 restaurantName = d.naam;
-                CarpetPlotConsumption.showDataFromFile(restaurantName, meterType);
+                setTimeout(function(){ CarpetPlotConsumption.showDataFromFile(restaurantName, meterType); }, 1800);
             });
 
         var cloud = function(w, h, text, id){
