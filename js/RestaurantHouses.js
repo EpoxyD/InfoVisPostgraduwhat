@@ -209,7 +209,7 @@ var RestaurantHouses = {
                 }
 
                 restaurantName = d.naam;
-                carpetplot(restaurantName, meterType);
+                CarpetPlotConsumption.showDataFromFile(restaurantName, meterType);
             });
 
         var cloud = function(w, h, text, id){
@@ -288,7 +288,7 @@ var RestaurantHouses = {
                 }
                 meterType = 'Electricity';
                 if (restaurantName != null){
-                    carpetplot(restaurantName, meterType);
+                    CarpetPlotConsumption.showDataFromFile(restaurantName, meterType);
                 }
             });
 
@@ -317,7 +317,7 @@ var RestaurantHouses = {
                 }
                 meterType = 'Gas';
                 if (restaurantName != null){
-                    carpetplot(restaurantName, meterType);
+                    CarpetPlotConsumption.showDataFromFile(restaurantName, meterType);
                 }
             });
 
@@ -346,7 +346,7 @@ var RestaurantHouses = {
                 }
                 meterType = 'Water';
                 if (restaurantName != null){
-                    carpetplot(restaurantName, meterType);
+                    CarpetPlotConsumption.showDataFromFile(restaurantName, meterType);
                 }
             });
 

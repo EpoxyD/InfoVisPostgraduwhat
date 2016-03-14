@@ -5,11 +5,15 @@ var CarpetPlotConsumption = {
     },
 
     init: function() {
-        CarpetPlotConsumption.showDataFromFile("DataSet/WabiSabi_Gas.csv");
-    }
-    ,
+        CarpetPlotConsumption.showDataFromFileName("DataSet/WabiSabi_Gas.csv");
+    },
 
-    showDataFromFile: function (dataSetFileName) {
+    showDataFromFile : function (restaurant, type){
+        var filename = "DataSet/" + restaurant + "_" + type + ".csv";
+        CarpetPlotConsumption.showDataFromFileName(filename )
+    },
+
+    showDataFromFileName: function (dataSetFileName) {
 
         var margin = {top: 20, right: 20, bottom: 20, left: 40};
 
