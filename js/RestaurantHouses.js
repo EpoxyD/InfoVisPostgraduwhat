@@ -17,6 +17,9 @@ var RestaurantHouses = {
 
         var height = outerHeight - margin.top - margin.bottom;
 
+        var restaurantName;
+        var meterType = "Gas";
+
         var restaurants = [
             {
                 id: 0,

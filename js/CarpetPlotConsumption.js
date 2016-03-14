@@ -5,7 +5,9 @@ var CarpetPlotConsumption = {
     },
 
     init: function() {
-        CarpetPlotConsumption.showDataFromFileName("DataSet/WabiSabi_Gas.csv");
+        d3.select("body").append("p")
+            .attr("id","nothingToShowMessage")
+            .text("Click on a restaurant to show it's data!");
     },
 
     showDataFromFile : function (restaurant, type){
@@ -26,6 +28,7 @@ var CarpetPlotConsumption = {
 
         d3.select("#carpetplot").remove();
         d3.select("#tooltip").remove();
+        d3.select("#nothingToShowMessage").remove();
 
         var svg = d3.select("body")
             .append("svg")
