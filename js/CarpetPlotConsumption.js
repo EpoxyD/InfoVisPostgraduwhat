@@ -272,12 +272,14 @@ var CarpetPlotConsumption = {
 
             firstMonth_offset = ((firstMonth_offset * blockheight / 2) + (11 - firstMonth) * 4 * blockheight) + 30;
 
-            for(var i = 0; i < 3; i++ ){
-                svg.append('text')
-                    .attr('x', -20)
-                    .attr('y', (firstMonth_offset + i * 4 * blockheight + blockheight) + 30 )
-                    .attr('font-size', 10)
-                    .text(monthNames[i]);
+            if(lastYear != startYear) {
+                for (var i = 0; i < 3; i++) {
+                    svg.append('text')
+                        .attr('x', -20)
+                        .attr('y', (firstMonth_offset + i * 4 * blockheight + blockheight) + 30)
+                        .attr('font-size', 10)
+                        .text(monthNames[i]);
+                }
             }
         });
     }
