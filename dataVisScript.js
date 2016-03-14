@@ -68,14 +68,17 @@ var carpetplot = function(name, type){
             }
         });
 
-        var blockWidth = width/168;
+        var totaalColumnWidth = width/8;
+        var blockWidth = (totaalColumnWidth*7)/168;
         var blockheight = height/52;
         var lineheight = 2;
 
-        var calculateXCoordinate = function (day, hour) {
+        var calculateXCoordinate = function (day, hour, sundayBeforeMonday) {
             // this two strange lines are to make sure sunday is put behind saturday instead of being the first in line
-            day = day-1;
-            if (day == -1) day = 6;
+            if(sundayBeforeMonday) {
+                day = day - 1;
+                if (day == -1) day = 6;
+            }
             return day * 24 * blockWidth + hour*blockWidth;
         };
 
@@ -110,7 +113,7 @@ var carpetplot = function(name, type){
             .enter()
             .append("rect")
             .attr("x", function(d) {
-                return calculateXCoordinate(d.dayNumber, d.hour);
+                return calculateXCoordinate(d.dayNumber, d.hour,true);
             })
             .attr("y", function(d) {
                 return calculateYCoordinate(d.date);
@@ -134,15 +137,49 @@ var carpetplot = function(name, type){
                     .style("opacity",0);
             });
 
-        var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
+        var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6],['Totaal',7]];
+/*
+        var weekTotals = new Array;
+        // add all the week-y coordinates to the array
+        for (i = 0; i < data.length; i++) {
+            var ycoord = calculateYCoordinate(data[i].date);
+            var temp = {ycoordinate: ycoord, total: 0};
+            weekTotals.push(temp);
+        }
+        // add up the totals
+        for (i = 0; i < data.length; i++) {
+            var ycoord = calculateYCoordinate(data[i].date);
+            var pos = weekTotals.map(function(e) { return e.ycoordinate; }).indexOf(ycoord);
+            var total = weekTotals[pos].total;
+            total += data[i].consumption;
+            weekTotals[pos].total = total;
+        }
 
+        svg.selectAll("rect")
+            .data(weekTotals)
+            .enter()
+            .append("rect")
+            .attr("x", function(d) {
+                return calculateXCoordinate(7, 12,false);
+            })
+            .attr("y", function(d) {
+                return d.ycoordinate;
+            })
+            .attr("width", function (d) {
+                return  weekTotalMaxLength - (weekTotalMaxLength/ d.total);
+            })
+            .attr("height", blockheight)
+            .style("opacity",.7)
+            .style("fill", "red");
+*/
         svg.selectAll('text')
             .data(weekdays)
             .enter()
             .append('text')
             .attr('y', 0)
             .attr('x', function(d){
-                return d[1] *24 * blockWidth + 12 * blockWidth;
+                return calculateXCoordinate(d[1],12,false)
+                //return d[1] *24 * blockWidth + 12 * blockWidth;
             })
             .attr('text-anchor', 'middle')
             .text(function(d){
