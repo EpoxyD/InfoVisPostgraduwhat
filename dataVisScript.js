@@ -10,6 +10,12 @@ var height = outerHeight - margin.top - margin.bottom;
 var restaurantName;
 var meterType = 'Gas';
 
+var myBlue = "#324aff";
+var myCyan = "#32ffff";
+var myGreen = "#32ff32";
+var myYellow = "#ffff32";
+var myRed = "#ff3232";
+
 /**
  *  Carpet Plot
  */
@@ -55,7 +61,7 @@ var carpetplot = function(name, type){
         // Get the extrema of the consumption
         var minCons = d3.min(data, function(d) {return d.consumption;});
         var maxCons = d3.max(data, function(d) {return d.consumption;});
-        var midCons = minCons + (maxCons - minCons)/2;
+
 
         //Start- en lastYear
         var startYear = d3.min(data, function(d){return d.date.getYear() + 1900;});
@@ -68,14 +74,17 @@ var carpetplot = function(name, type){
             }
         });
 
-        var blockWidth = width/168;
+        var totaalColumnWidth = width/8;
+        var blockWidth = (totaalColumnWidth*7)/168;
         var blockheight = height/52;
         var lineheight = 2;
 
-        var calculateXCoordinate = function (day, hour) {
+        var calculateXCoordinate = function (day, hour, sundayBeforeMonday) {
             // this two strange lines are to make sure sunday is put behind saturday instead of being the first in line
-            day = day-1;
-            if (day == -1) day = 6;
+            if(sundayBeforeMonday) {
+                day = day - 1;
+                if (day == -1) day = 6;
+            }
             return day * 24 * blockWidth + hour*blockWidth;
         };
 
@@ -97,7 +106,10 @@ var carpetplot = function(name, type){
 
         };
 
-        var colorScale =d3.scale.linear().domain([minCons, midCons,maxCons]).range(['green','yellow','red']);
+        var oneFifth = (maxCons - minCons)/5;
+        var colorScale =d3.scale.linear()
+            .domain([minCons,(minCons+oneFifth),(minCons+2*oneFifth),(minCons+3*oneFifth),(minCons+4*oneFifth) ,maxCons])
+            .range([myBlue,myCyan,myGreen,myYellow,myRed]);
 
         // create tooltip div
         var tooltipDiv = d3.select("body").append("div")
@@ -110,7 +122,7 @@ var carpetplot = function(name, type){
             .enter()
             .append("rect")
             .attr("x", function(d) {
-                return calculateXCoordinate(d.dayNumber, d.hour);
+                return calculateXCoordinate(d.dayNumber, d.hour,true);
             })
             .attr("y", function(d) {
                 return calculateYCoordinate(d.date);
@@ -134,7 +146,61 @@ var carpetplot = function(name, type){
                     .style("opacity",0);
             });
 
-        var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
+        var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6],['Totaal',7]];
+        var weekTotals = [];
+        // add all the week-y coordinates to the array
+        for (i = 0; i < data.length; i++) {
+            var ycoord = calculateYCoordinate(data[i].date);
+            if (!(weekTotals.filter(function(e) { return e.ycoordinate == ycoord; }).length > 0)) {
+                var temp = {ycoordinate: ycoord, total: 0};
+                weekTotals.push(temp);
+            }
+        }
+        // add up the totals
+        for (i = 0; i < data.length; i++) {
+            var ycoord = calculateYCoordinate(data[i].date);
+            var pos = weekTotals.map(function(e) { return e.ycoordinate; }).indexOf(ycoord);
+            var total = weekTotals[pos].total;
+            total += data[i].consumption;
+            weekTotals[pos].total = total;
+        }
+
+        var totalWeekMin = d3.min(weekTotals, function(d) {return d.total;});
+        var totalWeekMax = d3.max(weekTotals, function(d) {return d.total;});
+
+        var totalScale = d3.scale.linear()
+            .domain([totalWeekMin,totalWeekMax])
+            .range([0,totaalColumnWidth]);
+
+        svg.append("g").
+        selectAll("rect")
+            .data(weekTotals)
+            .enter()
+            .append("rect")
+            .attr("x", function(d) {
+                return calculateXCoordinate(7, 0,false);
+            })
+            .attr("y", function(d) {
+                return d.ycoordinate;
+            })
+            .attr("width", function (d) {
+                return  totalScale(d.total);
+            })
+            .attr("height", blockheight)
+            .style("opacity",.7)
+            .style("fill", "#009999")
+            .on("mouseover",function(d) {
+                tooltipDiv
+                    .style("opacity",.9);
+                tooltipDiv.html("Total this week = " + Math.round(d.total))
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY) + "px");
+
+            })
+            .on("mouseout", function() {
+                tooltipDiv
+                    .style("opacity",0);
+            });
 
         svg.selectAll('text')
             .data(weekdays)
@@ -142,7 +208,8 @@ var carpetplot = function(name, type){
             .append('text')
             .attr('y', 0)
             .attr('x', function(d){
-                return d[1] *24 * blockWidth + 12 * blockWidth;
+                return calculateXCoordinate(d[1],12,false);
+                //return d[1] *24 * blockWidth + 12 * blockWidth;
             })
             .attr('text-anchor', 'middle')
             .text(function(d){
