@@ -138,13 +138,14 @@ var carpetplot = function(name, type){
             });
 
         var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6],['Totaal',7]];
-/*
-        var weekTotals = new Array;
+        var weekTotals = [];
         // add all the week-y coordinates to the array
         for (i = 0; i < data.length; i++) {
             var ycoord = calculateYCoordinate(data[i].date);
-            var temp = {ycoordinate: ycoord, total: 0};
-            weekTotals.push(temp);
+            if (!(weekTotals.filter(function(e) { return e.ycoordinate == ycoord; }).length > 0)) {
+                var temp = {ycoordinate: ycoord, total: 0};
+                weekTotals.push(temp);
+            }
         }
         // add up the totals
         for (i = 0; i < data.length; i++) {
@@ -155,30 +156,50 @@ var carpetplot = function(name, type){
             weekTotals[pos].total = total;
         }
 
-        svg.selectAll("rect")
+        var totalWeekMin = d3.min(weekTotals, function(d) {return d.total;});
+        var totalWeekMax = d3.max(weekTotals, function(d) {return d.total;});
+
+        var totalScale = d3.scale.linear()
+            .domain([totalWeekMin,totalWeekMax])
+            .range([0,totaalColumnWidth]);
+
+        svg.append("g").
+        selectAll("rect")
             .data(weekTotals)
             .enter()
             .append("rect")
             .attr("x", function(d) {
-                return calculateXCoordinate(7, 12,false);
+                return calculateXCoordinate(7, 0,false);
             })
             .attr("y", function(d) {
                 return d.ycoordinate;
             })
             .attr("width", function (d) {
-                return  weekTotalMaxLength - (weekTotalMaxLength/ d.total);
+                return  totalScale(d.total);
             })
             .attr("height", blockheight)
             .style("opacity",.7)
-            .style("fill", "red");
-*/
+            .style("fill", "#009999")
+            .on("mouseover",function(d) {
+                tooltipDiv
+                    .style("opacity",.9);
+                tooltipDiv.html("Total this week = " + Math.round(d.total))
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY) + "px");
+
+            })
+            .on("mouseout", function() {
+                tooltipDiv
+                    .style("opacity",0);
+            });
+
         svg.selectAll('text')
             .data(weekdays)
             .enter()
             .append('text')
             .attr('y', 0)
             .attr('x', function(d){
-                return calculateXCoordinate(d[1],12,false)
+                return calculateXCoordinate(d[1],12,false);
                 //return d[1] *24 * blockWidth + 12 * blockWidth;
             })
             .attr('text-anchor', 'middle')
