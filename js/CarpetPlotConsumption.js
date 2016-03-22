@@ -7,7 +7,9 @@ var CarpetPlotConsumption = {
     init: function() {
         d3.select("body").append("p")
             .attr("id","nothingToShowMessage")
-            .text("Click on a restaurant to show it's data!");
+            .text("Click on a restaurant to show it's data!")
+            .attr('fill', '#666666')
+            .attr('font-family', 'sans-serif');
     },
 
     showDataFromFile : function (restaurant, type){
@@ -37,6 +39,8 @@ var CarpetPlotConsumption = {
             .attr("id", "carpetplot")
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        d3.select("#carpetplot").style('visibility', 'hidden');
 
         d3.csv(dataSetFileName, function(data) {
             data.forEach(function(d) {
@@ -115,7 +119,7 @@ var CarpetPlotConsumption = {
             var half = (maxCons - minCons)/2;
             var colorScale =d3.scale.linear()
                 .domain([minCons,(minCons+half) ,maxCons])
-                .range(["green","yellow","red"]);
+                .range(["#ffebe6","#ff3300","#330a00"]);
 
             // create tooltip div
             var tooltipDiv = d3.select("body").append("div")
@@ -123,6 +127,39 @@ var CarpetPlotConsumption = {
                 .attr("id", "tooltip")
                 .style("opacity",0);
 
+            svg.selectAll("circle")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("cx", function(d) {
+                    return (calculateXCoordinate(d.dayNumber, d.hour,true) + blockWidth/2);
+                })
+                .attr("cy", function(d) {
+                    return (calculateYCoordinate(d.date) + blockheight/2);
+                })
+                .attr('r', function(){
+                    if (blockheight < blockWidth){
+                        return (blockheight/2) * 0.85;
+                    }
+                    return (blockWidth/2) * 0.85;
+                })
+                .style("opacity",.9)
+                .style("fill", function(d){
+                    return colorScale(d.consumption);
+                })
+                .on("mouseover",function(d) {
+                    tooltipDiv
+                        .style("opacity",.9);
+                    tooltipDiv.html(d.date.toDateString() + "</br>Time: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Consumption = " + Math.round(d.consumption))
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY) + "px");
+
+                })
+                .on("mouseout", function() {
+                    tooltipDiv
+                        .style("opacity",0);
+                });
+            /*
             svg.selectAll("rect")
                 .data(data)
                 .enter()
@@ -151,6 +188,7 @@ var CarpetPlotConsumption = {
                     tooltipDiv
                         .style("opacity",0);
                 });
+            */
 
             var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6],['Totaal',7]];
             var weekTotals = [];
@@ -187,14 +225,14 @@ var CarpetPlotConsumption = {
                     return calculateXCoordinate(7, 0,false);
                 })
                 .attr("y", function(d) {
-                    return d.ycoordinate;
+                    return d.ycoordinate + blockheight * 0.1;
                 })
                 .attr("width", function (d) {
                     return  totalScale(d.total);
                 })
-                .attr("height", blockheight)
-                .style("opacity",.7)
-                .style("fill", "#009999")
+                .attr("height", blockheight * 0.8)
+                .style("opacity",.9)
+                .style("fill", "#7DB7D4")
                 .on("mouseover",function(d) {
                     tooltipDiv
                         .style("opacity",.9);
@@ -212,6 +250,8 @@ var CarpetPlotConsumption = {
                 .data(weekdays)
                 .enter()
                 .append('text')
+                .attr('fill', '#666666')
+                .attr('font-family', 'sans-serif')
                 .attr('y', 0)
                 .attr('x', function(d){
                     return calculateXCoordinate(d[1],12,false);
@@ -235,9 +275,12 @@ var CarpetPlotConsumption = {
                         }
                     })
                     .attr('height', lineheight)
-                    .attr('width', width + 35);
+                    .attr('width', width + 35)
+                    .attr('fill', '#666666');
 
                 svg.append('text')
+                    .attr('fill', '#666666')
+                    .attr('font-family', 'sans-serif')
                     .attr('x', -65)
                     .attr('y', function(){
                         if (i == 0) {
@@ -264,6 +307,8 @@ var CarpetPlotConsumption = {
 
             for(var i = firstMonth; i < monthNames.length; i++ ){
                 svg.append('text')
+                    .attr('fill', '#666666')
+                    .attr('font-family', 'sans-serif')
                     .attr('x', -20)
                     .attr('y', ((firstMonth_offset * blockheight / 2) + (i - firstMonth) * 4 * blockheight) + 30 )
                     .attr('font-size', 10)
@@ -275,12 +320,19 @@ var CarpetPlotConsumption = {
             if(lastYear != startYear) {
                 for (var i = 0; i < 3; i++) {
                     svg.append('text')
+                        .attr('fill', '#666666')
+                        .attr('font-family', 'sans-serif')
                         .attr('x', -20)
                         .attr('y', (firstMonth_offset + i * 4 * blockheight + blockheight) + 30)
                         .attr('font-size', 10)
                         .text(monthNames[i]);
                 }
             }
+
+            ProgressDialog();
+
+            d3.select("#carpetplot").style('visibility', 'visible');
+
         });
     }
 

@@ -11,3 +11,18 @@ div.tooltip {
     color: #fff;
     border-radius: 2px;
 }
+
+#overlay {
+    visibility: hidden;
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    margin-top: -50px;
+    margin-left: -50px;
+    text-align:center;
+    z-index: 1000;
+}
+
+#progress {
+    background-color: rgba(250,250,250,0.9);
+}

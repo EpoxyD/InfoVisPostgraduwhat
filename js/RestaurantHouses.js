@@ -135,7 +135,7 @@ var RestaurantHouses = {
             }
         };
 
-        var x_pos = d3.scale.linear().domain([0, 9]).range([0, width]);
+        var x_pos = d3.scale.linear().domain([0, 6]).range([0, width]);
 // De hoogte moet nog gescaled worden naar de hoogste waarde
         var y_scale = d3.scale.linear().domain([0, d3.max(restaurants, function(d) { return d.max; })]).
         rangeRound([0, height]);
@@ -187,7 +187,6 @@ var RestaurantHouses = {
                 }
 
                 var coords = d3.mouse(this);
-                console.log(coords);
 
                 for (var i = 0; i < 3 ; i++){
                     var wolk = d3.select('#cloud' + i);
@@ -212,7 +211,11 @@ var RestaurantHouses = {
                 }
 
                 restaurantName = d.naam;
+
+                ProgressDialog();
+
                 setTimeout(function(){ CarpetPlotConsumption.showDataFromFile(restaurantName, meterType); }, 1800);
+
             });
 
         var cloud = function(w, h, text, id){
@@ -222,41 +225,45 @@ var RestaurantHouses = {
                     .attr('id', 'cloud' + id)
                     .attr('class','node');
 
+            //var color = '#000000';
+            var color = '#666666';
+
             g.append('circle')
                 .attr('cx', w/2.5)
                 .attr('cy', h/3)
                 .attr('r', w/3)
-                .attr('fill', '#000000');
+                .attr('fill', color);
 
             g.append('circle')
                 .attr('cx', w/3)
                 .attr('cy', 2.5 * h/3)
                 .attr('r', w/3)
-                .attr('fill', '#000000');
+                .attr('fill', color);
 
             g.append('circle')
                 .attr('cx', w/7)
                 .attr('cy', h/3)
                 .attr('r', w/4)
-                .attr('fill', '#000000');
+                .attr('fill', color);
 
             g.append('circle')
                 .attr('cx', 3.5 * w/5)
                 .attr('cy', 3.3 * h/4)
                 .attr('r', 1.5 * w/5)
-                .attr('fill', '#000000');
+                .attr('fill', color);
 
             g.append('circle')
                 .attr('cx', 3.5 * w/5)
                 .attr('cy', h/2.5)
                 .attr('r', w/4)
-                .attr('fill', '#000000');
+                .attr('fill', color);
 
             g.append('text')
                 .attr('x', w/2.1)
                 .attr('y', h/1.5)
                 .attr('text-anchor', 'middle')
                 .text(text)
+                .attr('font-family', 'sans-serif')
                 .attr('fill', '#FFFFFF');
 
             return g;
@@ -291,7 +298,12 @@ var RestaurantHouses = {
                 }
                 meterType = 'Electricity';
                 if (restaurantName != null){
-                    CarpetPlotConsumption.showDataFromFile(restaurantName, meterType);
+
+                    ProgressDialog();
+
+                    setTimeout(function(){ CarpetPlotConsumption.showDataFromFile(restaurantName, meterType); }, 1000);
+
+
                 }
             });
 
@@ -320,7 +332,10 @@ var RestaurantHouses = {
                 }
                 meterType = 'Gas';
                 if (restaurantName != null){
-                    CarpetPlotConsumption.showDataFromFile(restaurantName, meterType);
+                    ProgressDialog();
+
+                    setTimeout(function(){ CarpetPlotConsumption.showDataFromFile(restaurantName, meterType); }, 1800);
+
                 }
             });
 
@@ -349,11 +364,27 @@ var RestaurantHouses = {
                 }
                 meterType = 'Water';
                 if (restaurantName != null){
-                    CarpetPlotConsumption.showDataFromFile(restaurantName, meterType);
+                    ProgressDialog();
+
+                    setTimeout(function(){ CarpetPlotConsumption.showDataFromFile(restaurantName, meterType); }, 1800);
+
                 }
             });
 
 
     }
+};
 
-}
+var ProgressDialog = function(){
+    console.log('show progress');
+
+    var el = document.getElementById("overlay");
+
+    d3.select('#overlay')
+        .transition()
+        .duration(500)
+        .style('visibility', function(){
+            return (el.style.visibility == "visible") ? "hidden" : "visible";
+        });
+};
+
