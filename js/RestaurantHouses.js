@@ -64,6 +64,7 @@ var RestaurantHouses = {
             .attr('height', outerHeight)
             .attr('id', 'svg_houses')
             .append('g')
+            .attr('id', 'group_houses')
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         var houses = {

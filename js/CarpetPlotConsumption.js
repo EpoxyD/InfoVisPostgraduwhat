@@ -28,6 +28,12 @@ var CarpetPlotConsumption = {
 
         var height = outerHeight - margin.top - margin.bottom;
 
+        var totalOnHour = new Array(168);
+        for(var i = 0; i < totalOnHour.length; i++){
+            totalOnHour[i] = 0;
+        }
+
+        d3.select("#hourPlot").remove();
         d3.select("#carpetplot").remove();
         d3.select("#tooltip").remove();
         d3.select("#nothingToShowMessage").remove();
@@ -87,7 +93,7 @@ var CarpetPlotConsumption = {
             var totaalColumnWidth = width/8;
             var blockWidth = (totaalColumnWidth*7)/168;
             var blockheight = height/52;
-            var lineheight = 2;
+            var lineheight = 1;
 
             var calculateXCoordinate = function (day, hour, sundayBeforeMonday) {
                 // this two strange lines are to make sure sunday is put behind saturday instead of being the first in line
@@ -95,7 +101,7 @@ var CarpetPlotConsumption = {
                     day = day - 1;
                     if (day == -1) day = 6;
                 }
-                return day * 24 * blockWidth + hour*blockWidth;
+                return day * 24 * blockWidth + hour * blockWidth;
             };
 
             var calculateYCoordinate = function (date) {
@@ -119,7 +125,8 @@ var CarpetPlotConsumption = {
             var half = (maxCons - minCons)/2;
             var colorScale =d3.scale.linear()
                 .domain([minCons,(minCons+half) ,maxCons])
-                .range(["#ffebe6","#ff3300","#330a00"]);
+                //.range(["#ffebe6","#ff3300","#330a00"]); RED
+                .range(["#ebfaeb","#33cc33","#0a290a"]); //Green
 
             // create tooltip div
             var tooltipDiv = d3.select("body").append("div")
@@ -127,15 +134,21 @@ var CarpetPlotConsumption = {
                 .attr("id", "tooltip")
                 .style("opacity",0);
 
+            var lastYCoord = 0;
+
             svg.selectAll("circle")
                 .data(data)
                 .enter()
                 .append("circle")
                 .attr("cx", function(d) {
-                    return (calculateXCoordinate(d.dayNumber, d.hour,true) + blockWidth/2);
+                    var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
+                    totalOnHour[x] += d.consumption;
+                    return (x*blockWidth + blockWidth/2);
                 })
                 .attr("cy", function(d) {
-                    return (calculateYCoordinate(d.date) + blockheight/2);
+                    var y = calculateYCoordinate(d.date) + blockheight/2;
+                    lastYCoord = y + blockheight/2;
+                    return y;
                 })
                 .attr('r', function(){
                     if (blockheight < blockWidth){
@@ -159,36 +172,9 @@ var CarpetPlotConsumption = {
                     tooltipDiv
                         .style("opacity",0);
                 });
-            /*
-            svg.selectAll("rect")
-                .data(data)
-                .enter()
-                .append("rect")
-                .attr("x", function(d) {
-                    return calculateXCoordinate(d.dayNumber, d.hour,true);
-                })
-                .attr("y", function(d) {
-                    return calculateYCoordinate(d.date);
-                })
-                .attr("width", blockWidth)
-                .attr("height", blockheight)
-                .style("opacity",.7)
-                .style("fill", function(d){
-                    return colorScale(d.consumption);
-                })
-                .on("mouseover",function(d) {
-                    tooltipDiv
-                        .style("opacity",.9);
-                    tooltipDiv.html(d.date.toDateString() + "</br>Time: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Consumption = " + Math.round(d.consumption))
-                        .style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY) + "px");
 
-                })
-                .on("mouseout", function() {
-                    tooltipDiv
-                        .style("opacity",0);
-                });
-            */
+            d3.select('#carpetplot')
+                .style('height', lastYCoord + 3 * blockheight);
 
             var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6],['Totaal',7]];
             var weekTotals = [];
@@ -214,7 +200,7 @@ var CarpetPlotConsumption = {
 
             var totalScale = d3.scale.linear()
                 .domain([totalWeekMin,totalWeekMax])
-                .range([0,totaalColumnWidth]);
+                .range([0,totaalColumnWidth - blockWidth]);
 
             svg.append("g").
                 selectAll("rect")
@@ -222,17 +208,16 @@ var CarpetPlotConsumption = {
                 .enter()
                 .append("rect")
                 .attr("x", function(d) {
-                    return calculateXCoordinate(7, 0,false);
+                    return calculateXCoordinate(7, 0,false) + blockWidth;
                 })
                 .attr("y", function(d) {
-                    return d.ycoordinate + blockheight * 0.1;
+                    return d.ycoordinate + blockheight * 0.1 + blockheight/4;
                 })
                 .attr("width", function (d) {
                     return  totalScale(d.total);
                 })
-                .attr("height", blockheight * 0.8)
-                .style("opacity",.9)
-                .style("fill", "#7DB7D4")
+                .attr("height", blockWidth - 5)
+                .attr('fill', '#666666')
                 .on("mouseover",function(d) {
                     tooltipDiv
                         .style("opacity",.9);
@@ -265,7 +250,7 @@ var CarpetPlotConsumption = {
             for(var i = 0; i < (lastYear - startYear + 1); i++){
 
                 svg.append('rect')
-                    .attr('x', -65 )
+                    .attr('x', -totaalColumnWidth )
                     .attr('y', function(){
                         if (i == 0) {
                             return 20 - lineheight;
@@ -275,7 +260,7 @@ var CarpetPlotConsumption = {
                         }
                     })
                     .attr('height', lineheight)
-                    .attr('width', width + 35)
+                    .attr('width', width)
                     .attr('fill', '#666666');
 
                 svg.append('text')
@@ -329,9 +314,41 @@ var CarpetPlotConsumption = {
                 }
             }
 
-            ProgressDialog();
-
             d3.select("#carpetplot").style('visibility', 'visible');
+
+            console.log(totalOnHour);
+
+            var totalHourMin = d3.min(totalOnHour, function(d) {return d;});
+            var totalHourMax = d3.max(totalOnHour, function(d) {return d;});
+
+            var verticalScale = d3.scale.linear()
+                .domain([totalHourMin,totalHourMax])
+                .range([0,height / 4]);
+
+            var svg2 = d3.select("body")
+                .append("svg")
+                .attr("width",outerWidth)
+                .attr("height",outerHeight / 4)
+                .attr("id", "hourPlot")
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + 0 + ")");
+
+            console.log(totalOnHour.length);
+
+            for (var i = 0; i < totalOnHour.length; i++){
+                svg2.append('rect')
+                    .attr('width', blockWidth - 5)
+                    .attr('height', function(){
+                        return verticalScale(totalOnHour[i]);
+                    })
+                    .attr('y', 0)
+                    .attr('x', function(){
+                        return ((i) * blockWidth + 2.5);
+                    })
+                    .attr('fill', '#666666');
+            }
+
+            ProgressDialog();
 
         });
     }
