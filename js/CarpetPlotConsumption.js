@@ -167,6 +167,8 @@ var CarpetPlotConsumption = {
                         .style("left", (d3.event.pageX) + "px")
                         .style("top", (d3.event.pageY) + "px");
 
+                    adjustHouses(d.timeStamp);
+
                 })
                 .on("mouseout", function() {
                     tooltipDiv
@@ -288,7 +290,6 @@ var CarpetPlotConsumption = {
             var firstMonth = data[0].date.getMonth();
 
             var firstMonth_offset = (30 - firstDay) % 7;
-            console.log(firstMonth_offset);
 
             for(var i = firstMonth; i < monthNames.length; i++ ){
                 svg.append('text')
@@ -316,8 +317,6 @@ var CarpetPlotConsumption = {
 
             d3.select("#carpetplot").style('visibility', 'visible');
 
-            console.log(totalOnHour);
-
             var totalHourMin = d3.min(totalOnHour, function(d) {return d;});
             var totalHourMax = d3.max(totalOnHour, function(d) {return d;});
 
@@ -332,8 +331,6 @@ var CarpetPlotConsumption = {
                 .attr("id", "hourPlot")
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + 0 + ")");
-
-            console.log(totalOnHour.length);
 
             for (var i = 0; i < totalOnHour.length; i++){
                 svg2.append('rect')
@@ -351,6 +348,42 @@ var CarpetPlotConsumption = {
             ProgressDialog();
 
         });
+
+
+        var adjustHouses = function(timestamp){
+            //Change the househeight to the date where you hover
+            var consumptions = [];
+
+            for(var i = 0; i < restaurants.length; i++){
+                var value = restaurants[i][meterType][timestamp];
+                if (value == null || value < 1) {
+                    consumptions.push(1);
+                }
+                else {
+                    consumptions.push(value);
+                }
+            }
+
+            var y_scale = d3.scale.log()
+                .base(Math.E)
+                .domain([Math.exp(0), d3.max(consumptions, function(d) { return d; })])
+                .range([70, height]);
+
+            y_scale = d3.scale.linear().domain([0, d3.max(consumptions, function(d) { return d; })])
+                .range([70, height]);
+
+            for(var i = 0; i < restaurants.length; i++){
+                d3.select('#house' + i)
+                    .transition()
+                    .duration(1000)
+                    .attr('height', function(){
+                        return y_scale(consumptions[i]);
+                    })
+                    .attr('y', function(){
+                        return height - y_scale(consumptions[i]);
+                    });
+            }
+        }
     }
 
 };

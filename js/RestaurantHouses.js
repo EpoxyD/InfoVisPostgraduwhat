@@ -1,3 +1,6 @@
+var restaurantName;
+var meterType = "Gas";
+
 var RestaurantHouses = {
 
     settings: {},
@@ -16,9 +19,6 @@ var RestaurantHouses = {
         var width = outerWidth - margin.left - margin.right;
 
         var height = outerHeight - margin.top - margin.bottom;
-
-        var restaurantName;
-        var meterType = "Gas";
 
         var restaurants = [
             {
@@ -137,7 +137,7 @@ var RestaurantHouses = {
         };
 
         var x_pos = d3.scale.linear().domain([0, 6]).range([0, width]);
-// De hoogte moet nog gescaled worden naar de hoogste waarde
+        // De hoogte moet nog gescaled worden naar de hoogste waarde
         var y_scale = d3.scale.linear().domain([0, d3.max(restaurants, function(d) { return d.max; })]).
         rangeRound([0, height]);
 
@@ -377,7 +377,6 @@ var RestaurantHouses = {
 };
 
 var ProgressDialog = function(){
-    console.log('show progress');
 
     var el = document.getElementById("overlay");
 
