@@ -356,32 +356,137 @@ var CarpetPlotConsumption = {
 
             for(var i = 0; i < restaurants.length; i++){
                 var value = restaurants[i][meterType][timestamp];
-                if (value == null || value < 1) {
-                    consumptions.push(1);
+                if (value == null || value < 0) {
+                    consumptions.push(0);
                 }
                 else {
                     consumptions.push(value);
                 }
             }
 
-            var y_scale = d3.scale.log()
-                .base(Math.E)
-                .domain([Math.exp(0), d3.max(consumptions, function(d) { return d; })])
-                .range([70, height]);
+            var min = d3.min(consumptions, function(d){
+                if (d != 0){
+                    return +d;
+                }
+            });
 
-            y_scale = d3.scale.linear().domain([0, d3.max(consumptions, function(d) { return d; })])
-                .range([70, height]);
+            var max = d3.max(consumptions, function(d) {
+                return +d;
+            });
+
+            var y_scale = d3.scale.linear().domain([ min -1 , max + 1]).range([70, height]);
 
             for(var i = 0; i < restaurants.length; i++){
-                d3.select('#house' + i)
-                    .transition()
-                    .duration(1000)
-                    .attr('height', function(){
-                        return y_scale(consumptions[i]);
-                    })
-                    .attr('y', function(){
-                        return height - y_scale(consumptions[i]);
-                    });
+                var h = d3.select('#house' + i).attr('height');
+
+                if (consumptions[i] != 0) {
+                    if (h == 0){
+
+                        d3.select('#no_data' + i)
+                            .transition()
+                            .duration(500)
+                            .attr('opacity', 0);
+
+                        d3.select('#no_data' + i)
+                            .transition()
+                            .delay(500)
+                            .style('visibility', 'hidden');
+
+                        d3.select('#house' + i)
+                            .transition()
+                            .duration(100)
+                            .delay(500)
+                            .attr('height', 60)
+                            .attr('y', function () {
+                                return height - 60;
+                            });
+
+                        d3.select('#house' + i)
+                            .transition()
+                            .duration(400)
+                            .delay(600)
+                            .attr('height', function () {
+                                return y_scale(consumptions[i]);
+                            })
+                            .attr('y', function () {
+                                return height - y_scale(consumptions[i]);
+                            });
+
+                        d3.select('#door' + i)
+                            .transition()
+                            .duration(150)
+                            .delay(550)
+                            .style('visibility', 'visible');
+
+                        d3.select('#window' + i)
+                            .transition()
+                            .duration(150)
+                            .delay(550)
+                            .style('visibility', 'visible');
+                    }
+
+                    else {
+
+                        d3.select('#no_data' + i)
+                            .style('visibility', 'hidden');
+
+                        d3.select('#door' + i)
+                            .style('visibility', 'visible');
+
+                        d3.select('#window' + i)
+                            .style('visibility', 'visible');
+
+                        d3.select('#house' + i)
+                            .transition()
+                            .duration(1000)
+                            .attr('height', function () {
+                                return y_scale(consumptions[i]);
+                            })
+                            .attr('y', function () {
+                                return height - y_scale(consumptions[i]);
+                            });
+                    }
+                }
+                else {
+                    if( h != 0 ) {
+
+                        d3.select('#house' + i)
+                            .transition()
+                            .duration(400)
+                            .attr('height', 70)
+                            .attr('y', function () {
+                                return height - 70;
+                            });
+
+                        d3.select('#house' + i)
+                            .transition()
+                            .duration(100)
+                            .delay(400)
+                            .attr('height', 0)
+                            .attr('y', function () {
+                                return height;
+                            });
+
+                        d3.select('#door' + i)
+                            .transition()
+                            .duration(150)
+                            .delay(350)
+                            .style('visibility', 'hidden');
+
+                        d3.select('#window' + i)
+                            .transition()
+                            .duration(300)
+                            .delay(350)
+                            .style('visibility', 'hidden');
+
+                        d3.select('#no_data' + i)
+                            .style('visibility', 'visible')
+                            .transition()
+                            .duration(500)
+                            .delay(500)
+                            .attr('opacity', 0.9);
+                    }
+                }
             }
         }
     }

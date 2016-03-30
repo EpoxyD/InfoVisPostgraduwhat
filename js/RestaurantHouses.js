@@ -99,6 +99,43 @@ var RestaurantHouses = {
                     .attr('fill', '#FFFFFF')
                     .attr('id', 'window'+ id);
 
+                var no_data = g.append('g')
+                    .attr('id', 'no_data' + id)
+                    .style('visibility', 'hidden')
+                    .attr('opacity', 0);
+
+                no_data.append('rect')
+                    .attr('y', height - (w * 0.45))
+                    .attr('x', w * 0.25)
+                    .attr('width', w * 0.05)
+                    .attr('height', w * 0.45)
+                    .attr('fill', '#A18568');
+
+                no_data.append('rect')
+                    .attr('y', height - (w * 0.45))
+                    .attr('x', w * 0.70)
+                    .attr('width', w * 0.05)
+                    .attr('height', w * 0.45)
+                    .attr('fill', '#A18568');
+
+                no_data.append('rect')
+                    .attr('y', height - (w * 0.4))
+                    .attr('x', w * 0.2)
+                    .attr('width', w * 0.6)
+                    .attr('height', w * 0.3)
+                    .attr('fill', '#AB855F')
+                    .style('stroke-width', 2)
+                    .style('stroke', '#A18568');
+
+                no_data.append('text')
+                    .attr('x', w * 0.5)
+                    .attr('y', height - (w * 0.2))
+                    .attr('text-anchor', 'middle')
+                    .text('No Data')
+                    .attr('font-family', 'sans-serif')
+                    .attr('font-size', 15)
+                    .attr('fill', '#DDDDDD');
+
                 return g;
             },
             café:function(h, w, id){
@@ -132,16 +169,50 @@ var RestaurantHouses = {
                     .attr('fill', '#FFFFFF')
                     .attr('id', 'window' + id);
 
+                var no_data = g.append('g')
+                    .attr('id', 'no_data' + id)
+                    .style('visibility', 'hidden')
+                    .attr('opacity', 0);
+
+                no_data.append('rect')
+                    .attr('y', height - (w * 0.45))
+                    .attr('x', w * 0.25)
+                    .attr('width', w * 0.05)
+                    .attr('height', w * 0.45)
+                    .attr('fill', '#A18568');
+
+                no_data.append('rect')
+                    .attr('y', height - (w * 0.45))
+                    .attr('x', w * 0.70)
+                    .attr('width', w * 0.05)
+                    .attr('height', w * 0.45)
+                    .attr('fill', '#A18568');
+
+                no_data.append('rect')
+                    .attr('y', height - (w * 0.4))
+                    .attr('x', w * 0.2)
+                    .attr('width', w * 0.6)
+                    .attr('height', w * 0.3)
+                    .attr('fill', '#AB855F')
+                    .style('stroke-width', 2)
+                    .style('stroke', '#A18568');
+
+                no_data.append('text')
+                    .attr('x', w * 0.5)
+                    .attr('y', height - (w * 0.2))
+                    .attr('text-anchor', 'middle')
+                    .text('No Data')
+                    .attr('font-family', 'sans-serif')
+                    .attr('font-size', 15)
+                    .attr('fill', '#DDDDDD');
+
                 return g;
             }
         };
 
         var x_pos = d3.scale.linear().domain([0, 6]).range([0, width]);
         // De hoogte moet nog gescaled worden naar de hoogste waarde
-        var y_scale = d3.scale.linear().domain([0, d3.max(restaurants, function(d) { return d.max; })]).
-        rangeRound([0, height]);
-
-        y_scale = d3.scale.log()
+        var y_scale = d3.scale.log()
             .base(Math.E)
             .domain([Math.exp(0), d3.max(restaurants, function(d) { return d.max; })])
             .range([0, height]);
