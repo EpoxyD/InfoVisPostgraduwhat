@@ -1,5 +1,6 @@
 var restaurantName;
 var meterType = "Gas";
+var x_pos;
 
 var RestaurantHouses = {
 
@@ -7,6 +8,7 @@ var RestaurantHouses = {
 
     init : function () {
         RestaurantHouses.showHouses();
+        RestaurantHouses.weatherDashboard();
     },
 
     showHouses : function () {
@@ -210,7 +212,7 @@ var RestaurantHouses = {
             }
         };
 
-        var x_pos = d3.scale.linear().domain([0, 6]).range([0, width]);
+        x_pos = d3.scale.linear().domain([0, 7]).range([0, width]);
         // De hoogte moet nog gescaled worden naar de hoogste waarde
         var y_scale = d3.scale.log()
             .base(Math.E)
@@ -346,7 +348,7 @@ var RestaurantHouses = {
          */
 
         svg_houses.append(function(){
-                var v = cloud(80, 40, 'Electricity', 2);
+                var v = cloud(90, 40, 'Elektriciteit', 2);
                 return v.node();
             })
             .attr("transform", function () {
@@ -444,6 +446,73 @@ var RestaurantHouses = {
             });
 
 
+    },
+
+    weatherDashboard : function (){
+
+        var dashboard = d3.select('#svg_houses');
+
+        //Date
+        dashboard.append('rect')
+            .attr('x', x_pos(6.2))
+            .attr('y', 20)
+            .attr('height', 40)
+            .attr('width', 200)
+            .attr('fill', '#74828F');
+
+        dashboard.append('circle')
+            .attr('cx', x_pos(6.2))
+            .attr('cy', 40)
+            .attr('r', 25)
+            .attr('fill', '#96C0CE');
+
+        dashboard.append("image")
+            .attr("xlink:href", "img/ic_day.png")
+            .attr("x", x_pos(6.2) - 17.5)
+            .attr("y", 22.5)
+            .attr("width", 35)
+            .attr("height", 35);
+
+        dashboard.append('text')
+            .attr('id', 'date')
+            .attr('x', x_pos(6.2) + 112.5)
+            .attr('y', 45)
+            .attr('font-size', 15)
+            .attr('text-anchor', 'middle')
+            .attr('font-family', 'sans-serif')
+            .attr('fill', '#EEEEEE')
+            .text(' Date ');
+
+        //time
+        dashboard.append('rect')
+            .attr('x', x_pos(6.2))
+            .attr('y', 90)
+            .attr('height', 40)
+            .attr('width', 200)
+            .attr('fill', '#74828F');
+
+        dashboard.append('circle')
+            .attr('cx', x_pos(6.2))
+            .attr('cy', 110)
+            .attr('r', 25)
+            .attr('fill', '#96C0CE');
+
+        dashboard.append("image")
+            .attr("xlink:href", "img/ic_time.png")
+            .attr("x", x_pos(6.2) - 17.5)
+            .attr("y", 92.5)
+            .attr("width", 35)
+            .attr("height", 35);
+
+        dashboard.append('text')
+            .attr('id', 'time')
+            .attr('x', x_pos(6.2) + 112.5)
+            .attr('y', 115)
+            .attr('font-size', 15)
+            .attr('text-anchor', 'middle')
+            .attr('font-family', 'sans-serif')
+            .attr('fill', '#EEEEEE')
+            .text(' Time ');
     }
 };
 

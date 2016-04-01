@@ -48,6 +48,10 @@ var CarpetPlotConsumption = {
 
         d3.select("#carpetplot").style('visibility', 'hidden');
 
+        /**
+         * Draw a carpetplot based on the selected house and metertype
+         */
+
         d3.csv(dataSetFileName, function(data) {
             data.forEach(function(d) {
                 // hier map je de data uit de csv aan het "data" object (de '+' is om aan te geven dat het een getalwaarde is
@@ -77,7 +81,6 @@ var CarpetPlotConsumption = {
             // Get the extrema of the consumption
             var minCons = d3.min(data, function(d) {return d.consumption;});
             var maxCons = d3.max(data, function(d) {return d.consumption;});
-
 
             //Start- en lastYear
             var startYear = d3.min(data, function(d){return d.date.getYear() + 1900;});
@@ -161,13 +164,31 @@ var CarpetPlotConsumption = {
                     return colorScale(d.consumption);
                 })
                 .on("mouseover",function(d) {
+                    //adjust the tooltip
                     tooltipDiv
                         .style("opacity",.9);
                     tooltipDiv.html(d.date.toDateString() + "</br>Time: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Consumption = " + Math.round(d.consumption))
                         .style("left", (d3.event.pageX) + "px")
                         .style("top", (d3.event.pageY) + "px");
 
+                    //adjust the restaurants
                     adjustHouses(d.timeStamp);
+
+                    //adjust the date
+                    d3.select('#date')
+                        .transition()
+                        .duration(1000)
+                        .text(function(){
+                            return (d.date.toDateString());
+                        });
+
+                    //adjust the date
+                    d3.select('#time')
+                        .transition()
+                        .duration(1000)
+                        .text(function(){
+                            return (d.date.getHours() + ":0" + d.date.getMinutes());
+                        });
 
                 })
                 .on("mouseout", function() {
@@ -350,37 +371,49 @@ var CarpetPlotConsumption = {
         });
 
 
+        /**
+         * Function to adjust the houses to their consumption on that date and time.
+         * Dataset is converted to json in CSVtoJSON.js where the timestamps are used as json-object names
+         *
+         * @param timestamp
+         */
+
+
         var adjustHouses = function(timestamp){
-            //Change the househeight to the date where you hover
+
+            //make an empty array
             var consumptions = [];
 
+            //fill the array with the consumption of each house at that time
+            //push -1 in case no data is available
             for(var i = 0; i < restaurants.length; i++){
                 var value = restaurants[i][meterType][timestamp];
                 if (value == null || value < 0) {
-                    consumptions.push(0);
+                    consumptions.push(-1);
                 }
                 else {
                     consumptions.push(value);
                 }
             }
 
-            var min = d3.min(consumptions, function(d){
-                if (d != 0){
-                    return +d;
-                }
-            });
+            console.log(consumptions);
 
+            //calculate the maximum of the 6 values to scale the heights
             var max = d3.max(consumptions, function(d) {
                 return +d;
             });
 
-            var y_scale = d3.scale.linear().domain([ min -1 , max + 1]).range([70, height]);
+            var y_scale = d3.scale.linear().domain([ 0 , max + 1]).range([70, height]);
 
+            //make the transition of every house to its new value
             for(var i = 0; i < restaurants.length; i++){
                 var h = d3.select('#house' + i).attr('height');
 
-                if (consumptions[i] != 0) {
+                //Check if there's data or not
+                if (consumptions[i] != -1) {
+                    //check if it's previous value was data or no data available
                     if (h == 0){
+                        //do the transition from no data available to new data
 
                         d3.select('#no_data' + i)
                             .transition()
@@ -426,6 +459,7 @@ var CarpetPlotConsumption = {
                     }
 
                     else {
+                        //do the transition from data to new data
 
                         d3.select('#no_data' + i)
                             .style('visibility', 'hidden');
@@ -449,6 +483,7 @@ var CarpetPlotConsumption = {
                 }
                 else {
                     if( h != 0 ) {
+                        //do the transition from data to no data available
 
                         d3.select('#house' + i)
                             .transition()
@@ -478,14 +513,14 @@ var CarpetPlotConsumption = {
                             .duration(300)
                             .delay(350)
                             .style('visibility', 'hidden');
-
-                        d3.select('#no_data' + i)
-                            .style('visibility', 'visible')
-                            .transition()
-                            .duration(500)
-                            .delay(500)
-                            .attr('opacity', 0.9);
                     }
+
+                    d3.select('#no_data' + i)
+                        .style('visibility', 'visible')
+                        .transition()
+                        .duration(500)
+                        .delay(500)
+                        .attr('opacity', 0.9);
                 }
             }
         }
