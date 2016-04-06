@@ -52,6 +52,13 @@ var restaurants = [
     }
 ];
 
+//De doelwaarden: 5% minder dan de gemiddeldes van alle restaurants hun eerste week
+var targets = {
+    Electricity: 7889.743945,
+    Water: 115.0519223,
+    Gas: 2802.846822
+};
+
 var bla = 0;
 var bla2 = 0;
 var bla3 = 0;

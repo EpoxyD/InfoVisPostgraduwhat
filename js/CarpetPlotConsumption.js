@@ -172,7 +172,7 @@ var CarpetPlotConsumption = {
                         .style("top", (d3.event.pageY) + "px");
 
                     //adjust the restaurants
-                    adjustHouses(d.timeStamp);
+                    CarpetPlotConsumption.adjustHouses(d.timeStamp);
 
                     //adjust the date
                     d3.select('#date')
@@ -199,7 +199,7 @@ var CarpetPlotConsumption = {
             d3.select('#carpetplot')
                 .style('height', lastYCoord + 3 * blockheight);
 
-            var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6],['Totaal',7]];
+            var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
             var weekTotals = [];
             // add all the week-y coordinates to the array
             for (i = 0; i < data.length; i++) {
@@ -369,161 +369,192 @@ var CarpetPlotConsumption = {
             ProgressDialog();
 
         });
+    },
 
+    /**
+     * Function to adjust the houses to their consumption on that date and time.
+     * Dataset is converted to json in CSVtoJSON.js where the timestamps are used as json-object names
+     *
+     * @param timestamp
+     */
 
-        /**
-         * Function to adjust the houses to their consumption on that date and time.
-         * Dataset is converted to json in CSVtoJSON.js where the timestamps are used as json-object names
-         *
-         * @param timestamp
-         */
+    adjustHouses : function(timestamp) {
 
+        ts = timestamp;
 
-        var adjustHouses = function(timestamp){
+        //make an empty array
+        var consumptions = [];
 
-            //make an empty array
-            var consumptions = [];
-
-            //fill the array with the consumption of each house at that time
-            //push -1 in case no data is available
-            for(var i = 0; i < restaurants.length; i++){
-                var value = restaurants[i][meterType][timestamp];
-                if (value == null || value < 0) {
-                    consumptions.push(-1);
-                }
-                else {
-                    consumptions.push(value);
-                }
+        //fill the array with the consumption of each house at that time
+        //push -1 in case no data is available
+        for (var i = 0; i < restaurants.length; i++) {
+            var value = restaurants[i][meterType][timestamp];
+            if (value == null || value < 0) {
+                consumptions.push(-1);
             }
+            else {
+                consumptions.push(value);
+            }
+        }
 
-            console.log(consumptions);
+        console.log(consumptions);
 
-            //calculate the maximum of the 6 values to scale the heights
-            var max = d3.max(consumptions, function(d) {
-                return +d;
+        //calculate the maximum of the 6 values to scale the heights
+        var max = d3.max(consumptions, function (d) {
+            return +d;
+        });
+
+        var y_scale = d3.scale.linear().domain([0, max + 1]).range([70, height]);
+
+        //adjust the average line (the flags)
+        //calculate the average
+        var total = 0;
+        var number = 0;
+
+        for (var i = 0; i < consumptions.length; i++) {
+            if (+consumptions[i] != -1) {
+                number++;
+                total += +consumptions[i];
+            }
+        }
+
+        var average = total / number;
+
+        //move the flags to the correct height
+        d3.select('#average')
+            .transition()
+            .duration(1000)
+            .attr('transform', function () {
+                var y = ((height - 164) - y_scale(average));
+                return 'translate(0,' + y + ')';
             });
 
-            var y_scale = d3.scale.linear().domain([ 0 , max + 1]).range([70, height]);
+        //adjust the pole height
+        for (var i = 1; i < 3; i++) {
+            d3.select('#pole' + i)
+                .transition()
+                .duration(1000)
+                .attr('height', y_scale(average))
+                .attr('y', height + 20 - y_scale(average));
+        }
 
-            //make the transition of every house to its new value
-            for(var i = 0; i < restaurants.length; i++){
-                var h = d3.select('#house' + i).attr('height');
+        //make the transition of every house to its new value
+        for (var i = 0; i < restaurants.length; i++) {
+            var h = d3.select('#house' + i).attr('height');
 
-                //Check if there's data or not
-                if (consumptions[i] != -1) {
-                    //check if it's previous value was data or no data available
-                    if (h == 0){
-                        //do the transition from no data available to new data
-
-                        d3.select('#no_data' + i)
-                            .transition()
-                            .duration(500)
-                            .attr('opacity', 0);
-
-                        d3.select('#no_data' + i)
-                            .transition()
-                            .delay(500)
-                            .style('visibility', 'hidden');
-
-                        d3.select('#house' + i)
-                            .transition()
-                            .duration(100)
-                            .delay(500)
-                            .attr('height', 60)
-                            .attr('y', function () {
-                                return height - 60;
-                            });
-
-                        d3.select('#house' + i)
-                            .transition()
-                            .duration(400)
-                            .delay(600)
-                            .attr('height', function () {
-                                return y_scale(consumptions[i]);
-                            })
-                            .attr('y', function () {
-                                return height - y_scale(consumptions[i]);
-                            });
-
-                        d3.select('#door' + i)
-                            .transition()
-                            .duration(150)
-                            .delay(550)
-                            .style('visibility', 'visible');
-
-                        d3.select('#window' + i)
-                            .transition()
-                            .duration(150)
-                            .delay(550)
-                            .style('visibility', 'visible');
-                    }
-
-                    else {
-                        //do the transition from data to new data
-
-                        d3.select('#no_data' + i)
-                            .style('visibility', 'hidden');
-
-                        d3.select('#door' + i)
-                            .style('visibility', 'visible');
-
-                        d3.select('#window' + i)
-                            .style('visibility', 'visible');
-
-                        d3.select('#house' + i)
-                            .transition()
-                            .duration(1000)
-                            .attr('height', function () {
-                                return y_scale(consumptions[i]);
-                            })
-                            .attr('y', function () {
-                                return height - y_scale(consumptions[i]);
-                            });
-                    }
-                }
-                else {
-                    if( h != 0 ) {
-                        //do the transition from data to no data available
-
-                        d3.select('#house' + i)
-                            .transition()
-                            .duration(400)
-                            .attr('height', 70)
-                            .attr('y', function () {
-                                return height - 70;
-                            });
-
-                        d3.select('#house' + i)
-                            .transition()
-                            .duration(100)
-                            .delay(400)
-                            .attr('height', 0)
-                            .attr('y', function () {
-                                return height;
-                            });
-
-                        d3.select('#door' + i)
-                            .transition()
-                            .duration(150)
-                            .delay(350)
-                            .style('visibility', 'hidden');
-
-                        d3.select('#window' + i)
-                            .transition()
-                            .duration(300)
-                            .delay(350)
-                            .style('visibility', 'hidden');
-                    }
+            //Check if there's data or not
+            if (consumptions[i] != -1) {
+                //check if it's previous value was data or no data available
+                if (h == 0) {
+                    //do the transition from no data available to new data
 
                     d3.select('#no_data' + i)
-                        .style('visibility', 'visible')
                         .transition()
                         .duration(500)
+                        .attr('opacity', 0);
+
+                    d3.select('#no_data' + i)
+                        .transition()
                         .delay(500)
-                        .attr('opacity', 0.9);
+                        .style('visibility', 'hidden');
+
+                    d3.select('#house' + i)
+                        .transition()
+                        .duration(100)
+                        .delay(500)
+                        .attr('height', 60)
+                        .attr('y', function () {
+                            return height - 60;
+                        });
+
+                    d3.select('#house' + i)
+                        .transition()
+                        .duration(400)
+                        .delay(600)
+                        .attr('height', function () {
+                            return y_scale(consumptions[i]);
+                        })
+                        .attr('y', function () {
+                            return height - y_scale(consumptions[i]);
+                        });
+
+                    d3.select('#door' + i)
+                        .transition()
+                        .duration(150)
+                        .delay(550)
+                        .style('visibility', 'visible');
+
+                    d3.select('#window' + i)
+                        .transition()
+                        .duration(150)
+                        .delay(550)
+                        .style('visibility', 'visible');
                 }
+
+                else {
+                    //do the transition from data to new data
+
+                    d3.select('#no_data' + i)
+                        .style('visibility', 'hidden');
+
+                    d3.select('#door' + i)
+                        .style('visibility', 'visible');
+
+                    d3.select('#window' + i)
+                        .style('visibility', 'visible');
+
+                    d3.select('#house' + i)
+                        .transition()
+                        .duration(1000)
+                        .attr('height', function () {
+                            return y_scale(consumptions[i]);
+                        })
+                        .attr('y', function () {
+                            return height - y_scale(consumptions[i]);
+                        });
+                }
+            }
+            else {
+                if (h != 0) {
+                    //do the transition from data to no data available
+
+                    d3.select('#house' + i)
+                        .transition()
+                        .duration(400)
+                        .attr('height', 70)
+                        .attr('y', function () {
+                            return height - 70;
+                        });
+
+                    d3.select('#house' + i)
+                        .transition()
+                        .duration(100)
+                        .delay(400)
+                        .attr('height', 0)
+                        .attr('y', function () {
+                            return height;
+                        });
+
+                    d3.select('#door' + i)
+                        .transition()
+                        .duration(150)
+                        .delay(350)
+                        .style('visibility', 'hidden');
+
+                    d3.select('#window' + i)
+                        .transition()
+                        .duration(300)
+                        .delay(350)
+                        .style('visibility', 'hidden');
+                }
+
+                d3.select('#no_data' + i)
+                    .style('visibility', 'visible')
+                    .transition()
+                    .duration(500)
+                    .delay(500)
+                    .attr('opacity', 0.9);
             }
         }
     }
-
 };
