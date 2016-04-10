@@ -473,7 +473,7 @@ var RestaurantHouses = {
         var trgt = d3.select('#svg_houses');
 
         var lamps = trgt.append('g')
-            .attr('id', 'average');
+            .attr('id', 'target');
 
         var lampScale = d3.scale.linear().domain([0, 15]).range([0.1, 6]);
 
