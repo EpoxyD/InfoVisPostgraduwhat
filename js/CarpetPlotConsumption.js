@@ -199,7 +199,7 @@ var CarpetPlotConsumption = {
             d3.select('#carpetplot')
                 .style('height', lastYCoord + 3 * blockheight);
 
-            var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
+            var weekdays = [['Monday', 0], ['Tuesday', 1], ['Wednesday', 2], ['Thursday', 3], ['Friday', 4], ['Saturday', 5], ['Sunday', 6]];
             var weekTotals = [];
             // add all the week-y coordinates to the array
             for (i = 0; i < data.length; i++) {

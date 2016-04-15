@@ -568,7 +568,7 @@ var RestaurantHouses = {
         svg_houses = d3.select('#svg_houses');
 
         svg_houses.append(function(){
-                var v = cloud(90, 40, 'Elektriciteit', 2);
+                var v = cloud(90, 40, 'Electricity', 2);
                 return v.node();
             })
             .attr("transform", function () {
