@@ -7,7 +7,7 @@ var CarpetPlotConsumption = {
     init: function() {
         d3.select("body").append("p")
             .attr("id","nothingToShowMessage")
-            .text("Click on a restaurant to show it's data!")
+            .text("Click on a restaurant to show its data!")
             .style('color', '#444444')
             .style('font-family', 'sans-serif');
     },
