@@ -80,7 +80,8 @@ var CSVtoJSON = {
 
                     restaurants[bla].Gas = json;
                     bla ++;
-                }
+                },
+                method: "get"
             }).send();
 
             //Water measurements
@@ -91,7 +92,8 @@ var CSVtoJSON = {
 
                     restaurants[bla2].Water = json;
                     bla2 ++;
-                }
+                },
+                method: "get"
             }).send();
 
             //Electricity measurements
@@ -102,7 +104,8 @@ var CSVtoJSON = {
 
                     restaurants[bla3].Electricity = json;
                     bla3 ++;
-                }
+                },
+                method: "get"
             }).send();
         }
 

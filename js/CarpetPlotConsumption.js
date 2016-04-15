@@ -8,8 +8,8 @@ var CarpetPlotConsumption = {
         d3.select("body").append("p")
             .attr("id","nothingToShowMessage")
             .text("Click on a restaurant to show it's data!")
-            .attr('fill', '#666666')
-            .attr('font-family', 'sans-serif');
+            .style('color', '#444444')
+            .style('font-family', 'sans-serif');
     },
 
     showDataFromFile : function (restaurant, type){
