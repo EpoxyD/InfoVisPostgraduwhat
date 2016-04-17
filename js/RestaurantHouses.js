@@ -217,7 +217,7 @@ var RestaurantHouses = {
             }
         };
 
-        x_pos = d3.scale.linear().domain([0, 7]).range([0, width]);
+        x_pos = d3.scale.linear().domain([0, 7]).range([50, width]);
         // De hoogte moet nog gescaled worden naar de hoogste waarde
         var y_scale = d3.scale.log()
             .base(Math.E)
@@ -560,6 +560,7 @@ var RestaurantHouses = {
                 .attr('text-anchor', 'middle')
                 .text(text)
                 .attr('font-family', 'sans-serif')
+                .attr('font-size', 11)
                 .attr('fill', '#FFFFFF');
 
             return g;
@@ -568,7 +569,7 @@ var RestaurantHouses = {
         svg_houses = d3.select('#svg_houses');
 
         svg_houses.append(function(){
-                var v = cloud(90, 40, 'Elektriciteit', 2);
+                var v = cloud(70, 40, 'Elektriciteit', 2);
                 return v.node();
             })
             .attr("transform", function () {
@@ -605,7 +606,7 @@ var RestaurantHouses = {
             });
 
         svg_houses.append(function(){
-                var v = cloud(60, 30, 'Gas', 0);
+                var v = cloud(50, 30, 'Gas', 0);
                 return v.node();
             })
             .attr("transform", function () {
@@ -640,7 +641,7 @@ var RestaurantHouses = {
             });
 
         svg_houses.append(function(){
-                var v = cloud(70, 35, 'Water', 1);
+                var v = cloud(60, 35, 'Water', 1);
                 return v.node();
             })
             .attr("transform", function () {

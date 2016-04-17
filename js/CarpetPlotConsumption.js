@@ -19,9 +19,9 @@ var CarpetPlotConsumption = {
 
     showDataFromFileName: function (dataSetFileName) {
 
-        var margin = {top: 20, right: 20, bottom: 20, left: 70};
+        var margin = {top: 20, right: 15, bottom: 20, left: 70};
 
-        var outerWidth = 1400;
+        var outerWidth = 1300;
         var outerHeight =400;
 
         var width = outerWidth - margin.left - margin.right;
