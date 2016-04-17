@@ -153,6 +153,15 @@ var CarpetPlotConsumption = {
                 .style("fill","#F0E68C")
                 .style("opacity",0);
 
+            var highlightVertical = svg
+                .append("rect")
+                .attr("x",100)
+                .attr("y",margin.top)
+                .attr("width",blockWidth)
+                .attr("height",height)
+                .style("fill","#F0E68C")
+                .style("opacity",0);
+
             var circles = svg.selectAll("circle")
                 .data(data)
                 .enter()
@@ -207,6 +216,15 @@ var CarpetPlotConsumption = {
                             return d.y - blockheight/2;
                         })
                         .style("opacity",0.7);
+
+                    highlightVertical
+                        .attr("x", function () {
+                            var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
+                            totalOnHour[x] += d.consumption;
+                            d.x = (x*blockWidth + blockWidth/2);
+                            return d.x - blockWidth/2;
+                        })
+                        .style("opacity",0.7);
                 })
                 .on("click", function(d){
                     //adjust the restaurants
@@ -237,6 +255,7 @@ var CarpetPlotConsumption = {
                     tooltipDiv
                         .style("opacity",0);
                     highlightHorizontal.style("opacity",0);
+                    highlightVertical.style("opacity",0);
                 });
 
             var weekdays_short = ['Zon', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Zat'];
