@@ -53,7 +53,7 @@ var CarpetPlotConsumption = {
          */
 
         d3.csv(dataSetFileName, function(data) {
-            var radius = 75;
+            var radius = 100;
             var fisheye = d3.fisheye.circular().radius(radius);
 
             data.forEach(function(d) {
@@ -188,7 +188,7 @@ var CarpetPlotConsumption = {
 
                     tooltipDiv.html(day + ' ' + date + ' ' + month + ' ' + year + "</br>Tijd: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Verbruik = " + Math.round(d.consumption))
                         .style("left", xPosition + "px")
-                        .style("top", yPosition + "px");
+                        .style("top", (yPosition+radius*2.5) + "px");
                 })
                 .on("click", function(d){
                     //adjust the restaurants
@@ -227,7 +227,7 @@ var CarpetPlotConsumption = {
                 .style('height', lastYCoord + 3 * blockheight);
 
             d3.select('#carpetplot').on("mousemove", function() {
-                fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1]  - radius]);
+                fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1] - 10]);
 
                 circles.each(function (d) {
                         d.fisheye = fisheye(d);
