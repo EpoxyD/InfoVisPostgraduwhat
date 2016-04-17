@@ -53,6 +53,9 @@ var CarpetPlotConsumption = {
          */
 
         d3.csv(dataSetFileName, function(data) {
+            var radius = 50;
+            var fisheye = d3.fisheye.circular().radius(radius);
+
             data.forEach(function(d) {
                 // hier map je de data uit de csv aan het "data" object (de '+' is om aan te geven dat het een getalwaarde is
                 d.timeStamp = d.Timestamp;
@@ -61,6 +64,8 @@ var CarpetPlotConsumption = {
                 d.date = new Date(d.dateParts[1], d.dateParts[2], d.dateParts[3], d.dateParts[4], d.dateParts[5], d.dateParts[6], d.dateParts[6]);
                 d.hour = d.date.getHours();
                 d.dayNumber = d.date.getDay();
+                d.x;
+                d.y;
             });
 
             var calculateWeekNr = function getWeekNumber(d) {
@@ -139,19 +144,21 @@ var CarpetPlotConsumption = {
 
             var lastYCoord = 0;
 
-            svg.selectAll("circle")
+            var circles = svg.selectAll("circle")
                 .data(data)
                 .enter()
                 .append("circle")
                 .attr("cx", function(d) {
                     var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
                     totalOnHour[x] += d.consumption;
-                    return (x*blockWidth + blockWidth/2);
+                    d.x = (x*blockWidth + blockWidth/2);
+                    return d.x;
                 })
                 .attr("cy", function(d) {
                     var y = calculateYCoordinate(d.date) + blockheight/2;
                     lastYCoord = y + blockheight/2;
-                    return y;
+                    d.y = y;
+                    return d.y;
                 })
                 .attr('r', function(){
                     if (blockheight < blockWidth){
@@ -167,10 +174,16 @@ var CarpetPlotConsumption = {
                     //adjust the tooltip
                     tooltipDiv
                         .style("opacity",.9);
-                    tooltipDiv.html(d.date.toDateString() + "</br>Time: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Consumption = " + Math.round(d.consumption))
-                        .style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY) + "px");
 
+                    //Get this circle's x/y values, then augment for the tooltip
+                    var xPosition = parseFloat(d3.select(this).attr("cx"));
+                    var yPosition = parseFloat(d3.select(this).attr("cy")) + height - radius;
+
+                    tooltipDiv.html(d.date.toDateString() + "</br>Time: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Consumption = " + Math.round(d.consumption))
+                        .style("left", xPosition + "px")
+                        .style("top", yPosition + "px");
+                })
+                .on("click", function(d){
                     //adjust the restaurants
                     CarpetPlotConsumption.adjustHouses(d.timeStamp);
 
@@ -182,14 +195,13 @@ var CarpetPlotConsumption = {
                             return (d.date.toDateString());
                         });
 
-                    //adjust the date
+                    //adjust the time
                     d3.select('#time')
                         .transition()
                         .duration(1000)
                         .text(function(){
                             return (d.date.getHours() + ":0" + d.date.getMinutes());
                         });
-
                 })
                 .on("mouseout", function() {
                     tooltipDiv
@@ -198,6 +210,23 @@ var CarpetPlotConsumption = {
 
             d3.select('#carpetplot')
                 .style('height', lastYCoord + 3 * blockheight);
+
+            d3.select('#carpetplot').on("mousemove", function() {
+                fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1] - margin.top - radius - 20]);
+
+                circles.each(function (d) {
+                        d.fisheye = fisheye(d);
+                    })
+                    .attr("cx", function (d) {
+                        return d.fisheye.x;
+                    })
+                    .attr("cy", function (d) {
+                        return d.fisheye.y;
+                    })
+                    .attr("r", function (d) {
+                        return d.fisheye.z * 2.5;
+                    });
+            });
 
             var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
             var weekTotals = [];
@@ -396,8 +425,6 @@ var CarpetPlotConsumption = {
                 consumptions.push(value);
             }
         }
-
-        console.log(consumptions);
 
         //calculate the maximum of the 6 values to scale the heights
         var max = d3.max(consumptions, function (d) {
