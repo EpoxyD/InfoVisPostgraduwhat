@@ -7,7 +7,7 @@ var CarpetPlotConsumption = {
     init: function() {
         d3.select("body").append("p")
             .attr("id","nothingToShowMessage")
-            .text("Click on a restaurant to show it's data!")
+            .text("Click on a restaurant to show its data!")
             .style('color', '#444444')
             .style('font-family', 'sans-serif');
     },
@@ -53,7 +53,7 @@ var CarpetPlotConsumption = {
          */
 
         d3.csv(dataSetFileName, function(data) {
-            var radius = 50;
+            var radius = 75;
             var fisheye = d3.fisheye.circular().radius(radius);
 
             data.forEach(function(d) {
@@ -177,7 +177,8 @@ var CarpetPlotConsumption = {
 
                     //Get this circle's x/y values, then augment for the tooltip
                     var xPosition = parseFloat(d3.select(this).attr("cx"));
-                    var yPosition = parseFloat(d3.select(this).attr("cy")) + height - radius;
+                    var restHeight = +d3.select('#svg_houses').attr('height');
+                    var yPosition = parseFloat(d3.select(this).attr("cy")) + restHeight - radius;
 
                     tooltipDiv.html(d.date.toDateString() + "</br>Time: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Consumption = " + Math.round(d.consumption))
                         .style("left", xPosition + "px")
@@ -212,7 +213,7 @@ var CarpetPlotConsumption = {
                 .style('height', lastYCoord + 3 * blockheight);
 
             d3.select('#carpetplot').on("mousemove", function() {
-                fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1] - margin.top - radius - 20]);
+                fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1]  - radius]);
 
                 circles.each(function (d) {
                         d.fisheye = fisheye(d);
@@ -224,7 +225,7 @@ var CarpetPlotConsumption = {
                         return d.fisheye.y;
                     })
                     .attr("r", function (d) {
-                        return d.fisheye.z * 2.5;
+                        return d.fisheye.z * 2.75;
                     });
             });
 
@@ -431,7 +432,7 @@ var CarpetPlotConsumption = {
             return +d;
         });
 
-        var y_scale = d3.scale.linear().domain([0, max + 1]).range([70, height]);
+        var y_scale = d3.scale.linear().domain([0, max + 1]).range([70, +d3.select('#svg_houses').attr('height') - 40]);
 
         //adjust the average line (the flags)
         //calculate the average
@@ -452,7 +453,7 @@ var CarpetPlotConsumption = {
             .transition()
             .duration(1000)
             .attr('transform', function () {
-                var y = ((height - 164) - y_scale(average));
+                var y = (height - (y_scale(average) + 15));
                 return 'translate(0,' + y + ')';
             });
 

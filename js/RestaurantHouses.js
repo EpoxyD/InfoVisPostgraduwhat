@@ -21,7 +21,7 @@ var RestaurantHouses = {
         var margin = {top: 20, right: 20, bottom: 20, left: 60};
 
         var outerWidth = 1400;
-        var outerHeight =400;
+        var outerHeight =250;
 
         var width = outerWidth - margin.left - margin.right;
 
