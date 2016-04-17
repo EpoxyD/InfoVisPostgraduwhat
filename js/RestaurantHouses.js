@@ -331,7 +331,7 @@ var RestaurantHouses = {
             .attr('text-anchor', 'middle')
             .attr('font-family', 'sans-serif')
             .attr('fill', '#EEEEEE')
-            .text(' Date ');
+            .text(' Datum ');
 
         //time
         dashboard.append('rect')
@@ -362,7 +362,7 @@ var RestaurantHouses = {
             .attr('text-anchor', 'middle')
             .attr('font-family', 'sans-serif')
             .attr('fill', '#EEEEEE')
-            .text(' Time ');
+            .text(' Tijd ');
 
         //temperature
         dashboard.append('rect')
@@ -393,7 +393,7 @@ var RestaurantHouses = {
             .attr('text-anchor', 'middle')
             .attr('font-family', 'sans-serif')
             .attr('fill', '#EEEEEE')
-            .text(' Temperature ');
+            .text(' Temperatuur ');
     },
 
     averageConsumption : function (){

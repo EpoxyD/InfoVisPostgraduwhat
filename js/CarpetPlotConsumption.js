@@ -7,7 +7,7 @@ var CarpetPlotConsumption = {
     init: function() {
         d3.select("body").append("p")
             .attr("id","nothingToShowMessage")
-            .text("Click on a restaurant to show its data!")
+            .text("Selecteer een restaurant om het verbruik te zien")
             .style('color', '#444444')
             .style('font-family', 'sans-serif');
     },
@@ -180,7 +180,13 @@ var CarpetPlotConsumption = {
                     var restHeight = +d3.select('#svg_houses').attr('height');
                     var yPosition = parseFloat(d3.select(this).attr("cy")) + restHeight - radius;
 
-                    tooltipDiv.html(d.date.toDateString() + "</br>Time: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Consumption = " + Math.round(d.consumption))
+                    //getdate in dutch
+                    var day = weekdays_short[d.date.getDay()];
+                    var date = d.date.getDate();
+                    var month = monthNames[d.date.getMonth()];
+                    var year = +d.date.getYear() + 1900;
+
+                    tooltipDiv.html(day + ' ' + date + ' ' + month + ' ' + year + "</br>Tijd: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Verbruik = " + Math.round(d.consumption))
                         .style("left", xPosition + "px")
                         .style("top", yPosition + "px");
                 })
@@ -193,7 +199,12 @@ var CarpetPlotConsumption = {
                         .transition()
                         .duration(1000)
                         .text(function(){
-                            return (d.date.toDateString());
+                            var day = weekdays_short[d.date.getDay()];
+                            var date = d.date.getDate();
+                            var month = monthNames[d.date.getMonth()];
+                            var year = +d.date.getYear() + 1900;
+
+                            return( day + ' ' + date + ' ' + month + ' ' + year);
                         });
 
                     //adjust the time
@@ -208,6 +219,9 @@ var CarpetPlotConsumption = {
                     tooltipDiv
                         .style("opacity",0);
                 });
+
+            var weekdays_short = ['Zon', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Zat'];
+
 
             d3.select('#carpetplot')
                 .style('height', lastYCoord + 3 * blockheight);
