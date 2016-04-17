@@ -144,6 +144,15 @@ var CarpetPlotConsumption = {
 
             var lastYCoord = 0;
 
+            var highlightHorizontal = svg
+                .append("rect")
+                .attr("x",0)
+                .attr("y",10)
+                .attr("width",width)
+                .attr("height",blockheight)
+                .style("fill","#F0E68C")
+                .style("opacity",0);
+
             var circles = svg.selectAll("circle")
                 .data(data)
                 .enter()
@@ -189,6 +198,15 @@ var CarpetPlotConsumption = {
                     tooltipDiv.html(day + ' ' + date + ' ' + month + ' ' + year + "</br>Tijd: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Verbruik = " + Math.round(d.consumption))
                         .style("left", xPosition + "px")
                         .style("top", (yPosition+radius*2.5) + "px");
+
+                    highlightHorizontal
+                        .attr("y", function() {
+                            var y = calculateYCoordinate(d.date) + blockheight/2;
+                            lastYCoord = y + blockheight/2;
+                            d.y = y;
+                            return d.y - blockheight/2;
+                        })
+                        .style("opacity",0.7);
                 })
                 .on("click", function(d){
                     //adjust the restaurants
@@ -218,6 +236,7 @@ var CarpetPlotConsumption = {
                 .on("mouseout", function() {
                     tooltipDiv
                         .style("opacity",0);
+                    highlightHorizontal.style("opacity",0);
                 });
 
             var weekdays_short = ['Zon', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Zat'];
