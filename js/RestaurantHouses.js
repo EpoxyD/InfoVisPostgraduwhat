@@ -21,7 +21,7 @@ var RestaurantHouses = {
         var margin = {top: 20, right: 20, bottom: 20, left: 60};
 
         var outerWidth = 1400;
-        var outerHeight =400;
+        var outerHeight =250;
 
         var width = outerWidth - margin.left - margin.right;
 
@@ -217,7 +217,7 @@ var RestaurantHouses = {
             }
         };
 
-        x_pos = d3.scale.linear().domain([0, 7]).range([0, width]);
+        x_pos = d3.scale.linear().domain([0, 7]).range([50, width]);
         // De hoogte moet nog gescaled worden naar de hoogste waarde
         var y_scale = d3.scale.log()
             .base(Math.E)
@@ -331,7 +331,7 @@ var RestaurantHouses = {
             .attr('text-anchor', 'middle')
             .attr('font-family', 'sans-serif')
             .attr('fill', '#EEEEEE')
-            .text(' Date ');
+            .text(' Datum ');
 
         //time
         dashboard.append('rect')
@@ -362,7 +362,7 @@ var RestaurantHouses = {
             .attr('text-anchor', 'middle')
             .attr('font-family', 'sans-serif')
             .attr('fill', '#EEEEEE')
-            .text(' Time ');
+            .text(' Tijd ');
 
         //temperature
         dashboard.append('rect')
@@ -393,7 +393,7 @@ var RestaurantHouses = {
             .attr('text-anchor', 'middle')
             .attr('font-family', 'sans-serif')
             .attr('fill', '#EEEEEE')
-            .text(' Temperature ');
+            .text(' Temperatuur ');
     },
 
     averageConsumption : function (){
@@ -560,6 +560,7 @@ var RestaurantHouses = {
                 .attr('text-anchor', 'middle')
                 .text(text)
                 .attr('font-family', 'sans-serif')
+                .attr('font-size', 11)
                 .attr('fill', '#FFFFFF');
 
             return g;
@@ -568,7 +569,7 @@ var RestaurantHouses = {
         svg_houses = d3.select('#svg_houses');
 
         svg_houses.append(function(){
-                var v = cloud(90, 40, 'Electricity', 2);
+                var v = cloud(70, 40, 'Elektriciteit', 2);
                 return v.node();
             })
             .attr("transform", function () {
@@ -605,7 +606,7 @@ var RestaurantHouses = {
             });
 
         svg_houses.append(function(){
-                var v = cloud(60, 30, 'Gas', 0);
+                var v = cloud(50, 30, 'Gas', 0);
                 return v.node();
             })
             .attr("transform", function () {
@@ -640,7 +641,7 @@ var RestaurantHouses = {
             });
 
         svg_houses.append(function(){
-                var v = cloud(70, 35, 'Water', 1);
+                var v = cloud(60, 35, 'Water', 1);
                 return v.node();
             })
             .attr("transform", function () {
