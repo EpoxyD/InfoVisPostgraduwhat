@@ -187,16 +187,36 @@ var CarpetPlotConsumption = {
                 .style("opacity",.9)
                 .style("fill", function(d){
                     return colorScale(d.consumption);
+                });
+
+            var squares = svg.selectAll("rect")
+                .data(data)
+                .enter()
+                .append("rect")
+                .attr("x", function(d) {
+                    var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
+                    totalOnHour[x] += d.consumption;
+                    d.x = (x*blockWidth + blockWidth/2);
+                    return d.x;
                 })
+                .attr("y",function(d) {
+                    var y = calculateYCoordinate(d.date) + blockheight/2;
+                    lastYCoord = y + blockheight/2;
+                    d.y = y;
+                    return d.y;
+                })
+                .attr("width",blockWidth)
+                .attr("height",blockheight)
+                .style("fill","rgba(255, 255, 255, 0)") // uncomment this line to make the squares visible
                 .on("mouseover",function(d) {
                     //adjust the tooltip
                     tooltipDiv
                         .style("opacity",.9);
 
                     //Get this circle's x/y values, then augment for the tooltip
-                    var xPosition = parseFloat(d3.select(this).attr("cx"));
+                    var xPosition = parseFloat(d3.select(this).attr("x"));
                     var restHeight = +d3.select('#svg_houses').attr('height');
-                    var yPosition = parseFloat(d3.select(this).attr("cy")) + restHeight - radius;
+                    var yPosition = parseFloat(d3.select(this).attr("y")) + restHeight - radius;
 
                     //getdate in dutch
                     var day = weekdays_short[d.date.getDay()];
