@@ -403,6 +403,24 @@ var CarpetPlotConsumption = {
                     .text(startYear + i);
             }
 
+            var verticalDaySeperatorLines = [1,2,3,4,5,6];
+
+            var verticalDaySeperators = svg.append("g").selectAll("rect")
+                .data(verticalDaySeperatorLines)
+                .enter()
+                .append("rect")
+                .attr("x", function(d) {
+                  return d * 24 * blockWidth;
+                })
+                .attr("y",margin.top)
+                .attr("width",lineheight)
+                .attr("height",height)
+                .attr("fill","#666666");
+
+
+            // #######################################################################################################################################################################################
+
+
             //Maandnamen
             var monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
