@@ -53,7 +53,7 @@ var CarpetPlotConsumption = {
          */
 
         d3.csv(dataSetFileName, function(data) {
-            var radius = 75;
+            var radius = 100;
             var fisheye = d3.fisheye.circular().radius(radius);
 
             data.forEach(function(d) {
@@ -144,6 +144,24 @@ var CarpetPlotConsumption = {
 
             var lastYCoord = 0;
 
+            var highlightHorizontal = svg
+                .append("rect")
+                .attr("x",0)
+                .attr("y",10)
+                .attr("width",width)
+                .attr("height",blockheight)
+                .style("fill","#F0E68C")
+                .style("opacity",0);
+
+            var highlightVertical = svg
+                .append("rect")
+                .attr("x",100)
+                .attr("y",margin.top)
+                .attr("width",blockWidth)
+                .attr("height",height)
+                .style("fill","#F0E68C")
+                .style("opacity",0);
+
             var circles = svg.selectAll("circle")
                 .data(data)
                 .enter()
@@ -169,16 +187,36 @@ var CarpetPlotConsumption = {
                 .style("opacity",.9)
                 .style("fill", function(d){
                     return colorScale(d.consumption);
+                });
+
+            var squares = svg.selectAll("rect")
+                .data(data)
+                .enter()
+                .append("rect")
+                .attr("x", function(d) {
+                    var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
+                    totalOnHour[x] += d.consumption;
+                    d.x = (x*blockWidth + blockWidth/2);
+                    return d.x;
                 })
+                .attr("y",function(d) {
+                    var y = calculateYCoordinate(d.date) + blockheight/2;
+                    lastYCoord = y + blockheight/2;
+                    d.y = y;
+                    return d.y;
+                })
+                .attr("width",blockWidth)
+                .attr("height",blockheight)
+                .style("fill","rgba(255, 255, 255, 0)") // uncomment this line to make the squares visible
                 .on("mouseover",function(d) {
                     //adjust the tooltip
                     tooltipDiv
                         .style("opacity",.9);
 
                     //Get this circle's x/y values, then augment for the tooltip
-                    var xPosition = parseFloat(d3.select(this).attr("cx"));
+                    var xPosition = parseFloat(d3.select(this).attr("x"));
                     var restHeight = +d3.select('#svg_houses').attr('height');
-                    var yPosition = parseFloat(d3.select(this).attr("cy")) + restHeight - radius;
+                    var yPosition = parseFloat(d3.select(this).attr("y")) + restHeight - radius;
 
                     //getdate in dutch
                     var day = weekdays_short[d.date.getDay()];
@@ -188,7 +226,25 @@ var CarpetPlotConsumption = {
 
                     tooltipDiv.html(day + ' ' + date + ' ' + month + ' ' + year + "</br>Tijd: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Verbruik = " + Math.round(d.consumption))
                         .style("left", xPosition + "px")
-                        .style("top", yPosition + "px");
+                        .style("top", (yPosition+radius*2.5) + "px");
+
+                    highlightHorizontal
+                        .attr("y", function() {
+                            var y = calculateYCoordinate(d.date) + blockheight/2;
+                            lastYCoord = y + blockheight/2;
+                            d.y = y;
+                            return d.y - blockheight/2;
+                        })
+                        .style("opacity",0.7);
+
+                    highlightVertical
+                        .attr("x", function () {
+                            var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
+                            totalOnHour[x] += d.consumption;
+                            d.x = (x*blockWidth + blockWidth/2);
+                            return d.x - blockWidth/2;
+                        })
+                        .style("opacity",0.7);
                 })
                 .on("click", function(d){
                     //adjust the restaurants
@@ -218,6 +274,8 @@ var CarpetPlotConsumption = {
                 .on("mouseout", function() {
                     tooltipDiv
                         .style("opacity",0);
+                    highlightHorizontal.style("opacity",0);
+                    highlightVertical.style("opacity",0);
                 });
 
             var weekdays_short = ['Zon', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Zat'];
@@ -227,7 +285,7 @@ var CarpetPlotConsumption = {
                 .style('height', lastYCoord + 3 * blockheight);
 
             d3.select('#carpetplot').on("mousemove", function() {
-                fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1]  - radius]);
+                fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1] - 10]);
 
                 circles.each(function (d) {
                         d.fisheye = fisheye(d);
@@ -344,6 +402,24 @@ var CarpetPlotConsumption = {
                     })
                     .text(startYear + i);
             }
+
+            var verticalDaySeperatorLines = [1,2,3,4,5,6];
+
+            var verticalDaySeperators = svg.append("g").selectAll("rect")
+                .data(verticalDaySeperatorLines)
+                .enter()
+                .append("rect")
+                .attr("x", function(d) {
+                  return d * 24 * blockWidth;
+                })
+                .attr("y",margin.top)
+                .attr("width",lineheight)
+                .attr("height",height)
+                .attr("fill","#666666");
+
+
+            // #######################################################################################################################################################################################
+
 
             //Maandnamen
             var monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
