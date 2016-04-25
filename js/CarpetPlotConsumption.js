@@ -48,10 +48,6 @@ var CarpetPlotConsumption = {
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        var svgHourTotals = outersvg
-            .append("g")
-            .attr("transform","translate(" + margin.left + "," + (margin.top + 400) + ")");
-
         d3.select("#carpetplot").style('visibility', 'hidden');
 
         /**
@@ -298,7 +294,7 @@ var CarpetPlotConsumption = {
 
 
             d3.select('#carpetplot')
-                .style('height', lastYCoord + 3 * blockheight);
+                .style('height', lastYCoord + 3 * blockheight + height / 4);
 
             d3.select('#carpetplot').on("mousemove", function() {
                 fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1] - 10]);
@@ -452,7 +448,7 @@ var CarpetPlotConsumption = {
                 })
                 .attr("y",margin.top)
                 .attr("width",lineheight)
-                .attr("height",height + 100)
+                .attr("height",lastYCoord - 3*blockheight)
                 .attr("fill","#666666");
 
 
@@ -502,6 +498,10 @@ var CarpetPlotConsumption = {
             var verticalScale = d3.scale.linear()
                 .domain([totalHourMin,totalHourMax])
                 .range([0,height / 4]);
+
+            var svgHourTotals = outersvg
+                .append("g")
+                .attr("transform","translate(" + margin.left + "," + (margin.top + lastYCoord + blockheight) + ")");
 
             for (var i = 0; i < totalOnHour.length; i++){
                 svgHourTotals.append('rect')
