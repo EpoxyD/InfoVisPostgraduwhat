@@ -301,6 +301,23 @@ var CarpetPlotConsumption = {
                     });
             });
 
+            d3.select('#carpetplot').on("mouseout", function() {
+                fisheye.focus([d3.select('#carpetplot').width + 4 * radius, d3.select('#carpetplot').height + 4 * radius]);
+
+                circles.each(function (d) {
+                        d.fisheye = fisheye(d);
+                    })
+                    .attr("cx", function (d) {
+                        return d.fisheye.x;
+                    })
+                    .attr("cy", function (d) {
+                        return d.fisheye.y;
+                    })
+                    .attr("r", function (d) {
+                        return d.fisheye.z * 2.75;
+                    });
+            });
+
             var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
             var weekTotals = [];
             // add all the week-y coordinates to the array
