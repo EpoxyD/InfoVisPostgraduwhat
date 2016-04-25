@@ -144,6 +144,8 @@ var CarpetPlotConsumption = {
 
             var lastYCoord = 0;
 
+            var moveHighlights = true;
+
             var highlightHorizontal = svg
                 .append("rect")
                 .attr("x",0)
@@ -228,23 +230,26 @@ var CarpetPlotConsumption = {
                         .style("left", xPosition + "px")
                         .style("top", (yPosition+radius*2.5) + "px");
 
-                    highlightHorizontal
-                        .attr("y", function() {
-                            var y = calculateYCoordinate(d.date) + blockheight/2;
-                            lastYCoord = y + blockheight/2;
-                            d.y = y;
-                            return d.y - blockheight/2;
-                        })
-                        .style("opacity",0.7);
+                    if (moveHighlights == true) {
 
-                    highlightVertical
-                        .attr("x", function () {
-                            var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
-                            totalOnHour[x] += d.consumption;
-                            d.x = (x*blockWidth + blockWidth/2);
-                            return d.x - blockWidth/2;
-                        })
-                        .style("opacity",0.7);
+                        highlightHorizontal
+                            .attr("y", function () {
+                                var y = calculateYCoordinate(d.date) + blockheight / 2;
+                                lastYCoord = y + blockheight / 2;
+                                d.y = y;
+                                return d.y - blockheight / 2;
+                            })
+                            .style("opacity", 0.7);
+
+                        highlightVertical
+                            .attr("x", function () {
+                                var x = Math.round((calculateXCoordinate(d.dayNumber, d.hour, true)) / blockWidth);
+                                totalOnHour[x] += d.consumption;
+                                d.x = (x * blockWidth + blockWidth / 2);
+                                return d.x - blockWidth / 2;
+                            })
+                            .style("opacity", 0.7);
+                    }
                 })
                 .on("click", function(d){
                     //adjust the restaurants
@@ -270,12 +275,17 @@ var CarpetPlotConsumption = {
                         .text(function(){
                             return (d.date.getHours() + ":0" + d.date.getMinutes());
                         });
+
+                    //
+                    moveHighlights = false;
                 })
                 .on("mouseout", function() {
                     tooltipDiv
                         .style("opacity",0);
-                    highlightHorizontal.style("opacity",0);
-                    highlightVertical.style("opacity",0);
+                    if (moveHighlights == true) {
+                        highlightHorizontal.style("opacity", 0);
+                        highlightVertical.style("opacity", 0);
+                    }
                 });
 
             var weekdays_short = ['Zon', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Zat'];
@@ -317,6 +327,11 @@ var CarpetPlotConsumption = {
                         return d.fisheye.z * 2.75;
                     });
             });
+
+            d3.select('#carpetplot').on('mouseenter', function(){
+                moveHighlights = true;
+            });
+
 
             var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
             var weekTotals = [];
