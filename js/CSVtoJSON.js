@@ -68,7 +68,6 @@ var CSVtoJSON = {
     settings: {
 
     },
-
     init: function() {
 
         for (var i = 0; i < restaurants.length; i++) {
@@ -112,7 +111,6 @@ var CSVtoJSON = {
 
         console.log(restaurants);
     },
-
     convert: function(csv) {
 
         var lines=csv.split("\n");
