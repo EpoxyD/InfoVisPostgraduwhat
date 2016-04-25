@@ -22,11 +22,11 @@ var CarpetPlotConsumption = {
         var margin = {top: 20, right: 15, bottom: 20, left: 70};
 
         var outerWidth = 1300;
-        var outerHeight =400;
+        var outerHeight = 500;
 
-        var width = outerWidth - margin.left - margin.right;
+        var width = outerWidth  - margin.left - margin.right;
 
-        var height = outerHeight - margin.top - margin.bottom;
+        var height = outerHeight - margin.top - margin.bottom - 100;
 
         var totalOnHour = new Array(168);
         for(var i = 0; i < totalOnHour.length; i++){
@@ -38,13 +38,19 @@ var CarpetPlotConsumption = {
         d3.select("#tooltip").remove();
         d3.select("#nothingToShowMessage").remove();
 
-        var svg = d3.select("body")
+        var outersvg = d3.select("body")
             .append("svg")
             .attr("width",outerWidth)
             .attr("height",outerHeight)
-            .attr("id", "carpetplot")
+            .attr("id", "carpetplot");
+
+        var svg = outersvg
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var svgHourTotals = outersvg
+            .append("g")
+            .attr("transform","translate(" + margin.left + "," + (margin.top + 400) + ")");
 
         d3.select("#carpetplot").style('visibility', 'hidden');
 
@@ -158,7 +164,7 @@ var CarpetPlotConsumption = {
                 .attr("x",100)
                 .attr("y",margin.top)
                 .attr("width",blockWidth)
-                .attr("height",height)
+                .attr("height",height + 100)
                 .style("fill","#F0E68C")
                 .style("opacity",0);
 
@@ -431,7 +437,7 @@ var CarpetPlotConsumption = {
                 })
                 .attr("y",margin.top)
                 .attr("width",lineheight)
-                .attr("height",height)
+                .attr("height",height + 100)
                 .attr("fill","#666666");
 
 
@@ -482,16 +488,8 @@ var CarpetPlotConsumption = {
                 .domain([totalHourMin,totalHourMax])
                 .range([0,height / 4]);
 
-            var svg2 = d3.select("body")
-                .append("svg")
-                .attr("width",outerWidth)
-                .attr("height",outerHeight / 4)
-                .attr("id", "hourPlot")
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + 0 + ")");
-
             for (var i = 0; i < totalOnHour.length; i++){
-                svg2.append('rect')
+                svgHourTotals.append('rect')
                     .attr('width', blockWidth - 5)
                     .attr('height', function(){
                         return verticalScale(totalOnHour[i]);
