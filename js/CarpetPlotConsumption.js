@@ -85,6 +85,10 @@ var CarpetPlotConsumption = {
                 return [d.getFullYear(), weekNo];
             };
 
+            /*
+             *  Calculations to make the positioning of the circles in the carpetplot easier
+             */
+
             // Get the extrema of the consumption
             var minCons = d3.min(data, function(d) {return d.consumption;});
             var maxCons = d3.max(data, function(d) {return d.consumption;});
@@ -146,6 +150,10 @@ var CarpetPlotConsumption = {
 
             var lastYCoord = 0;
 
+            /*
+             *  Highlights to show the selected horizontal and vertical lines
+             */
+
             var moveHighlights = true;
 
             var highlightHorizontal = svg
@@ -165,6 +173,10 @@ var CarpetPlotConsumption = {
                 .attr("height",height + 100)
                 .style("fill","#F0E68C")
                 .style("opacity",0);
+
+            /*
+             *  The actual adding of the circles to the carpetplot
+             */
 
             var circles = svg.selectAll("circle")
                 .data(data)
@@ -192,6 +204,10 @@ var CarpetPlotConsumption = {
                 .style("fill", function(d){
                     return colorScale(d.consumption);
                 });
+
+            /*
+             *  Adding invisible squares on top to make hovering easier
+             */
 
             var squares = svg.selectAll("rect")
                 .data(data)
@@ -292,27 +308,112 @@ var CarpetPlotConsumption = {
 
             var weekdays_short = ['Zon', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Zat'];
 
-
+            // Resize the svg to fit all the content
             d3.select('#carpetplot')
                 .style('height', lastYCoord + 3 * blockheight + height / 4);
 
-            d3.select('#carpetplot').on("mousemove", function() {
-                fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1] - 10]);
+            /*
+             *  Fisheye
+             */
+            var enableFisheye = true;
 
-                circles.each(function (d) {
-                        d.fisheye = fisheye(d);
-                    })
-                    .attr("cx", function (d) {
-                        return d.fisheye.x;
-                    })
-                    .attr("cy", function (d) {
-                        return d.fisheye.y;
-                    })
-                    .attr("r", function (d) {
-                        return d.fisheye.z * 2.75;
-                    });
+            //Add a toggle button to turn the fisheye on or off
+            var toggle = d3.select('#carpetplot').append('g')
+                .on('click', function(){
+                    if(enableFisheye == true){
+                        enableFisheye = false;
+                        d3.select('#toggle_button')
+                            .transition()
+                            .duration(600)
+                            .attr('transform', function(){
+                                return "translate(" + (-30) + "," + 0 + ")";
+                            });
+                    }
+                    else{
+                        enableFisheye = true;
+                        d3.select('#toggle_button')
+                            .transition()
+                            .duration(600)
+                            .attr('transform', function(){
+                                return "translate(" + (0) + "," + 0 + ")";
+                            });
+                    }
+                });
+
+            toggle.append('rect')
+                .attr('x', 17.5)
+                .attr('y', 0)
+                .attr('width', 30)
+                .attr('height', 30)
+                .attr('fill', '#888888');
+
+            toggle.append('circle')
+                .attr('cx', 17.5)
+                .attr('cy', 15)
+                .attr('r', 15)
+                .attr('fill', '#888888');
+
+            toggle.append("text")
+                .style("fill", "white")
+                .attr("x", 17.5)
+                .attr("y", 19.5)
+                .attr('font-family', 'sans-serif')
+                .attr('font-size', '11')
+                .attr("text-anchor", "middle")
+                .text("ON");
+
+            toggle.append('circle')
+                .attr('cx', 47.5)
+                .attr('cy', 15)
+                .attr('r', 15)
+                .attr('fill', '#888888');
+
+            toggle.append("text")
+                .style("fill", "white")
+                .attr("x", 47.5)
+                .attr("y", 19.5)
+                .attr('font-family', 'sans-serif')
+                .attr('font-size', '11')
+                .attr("text-anchor", "middle")
+                .text("OFF");
+
+            var toggle_button = toggle.append('g')
+                .attr('id', 'toggle_button');
+
+            toggle_button.append('circle')
+                .attr('cx', 47.5)
+                .attr('cy', 15)
+                .attr('r', 14)
+                .attr('fill', '#444444');
+
+            toggle_button.append("image")
+                .attr("xlink:href", "img/ic_magnifying_glass.png")
+                .attr("x", 47.5 - 7)
+                .attr("y", 15 - 7)
+                .attr("width", 14)
+                .attr("height", 14);
+
+            // Implement the fisheye
+            d3.select('#carpetplot').on("mousemove", function() {
+                if(enableFisheye == true) {
+                    fisheye.focus([d3.mouse(this)[0] - margin.left, d3.mouse(this)[1] - 10]);
+
+                    circles.each(function (d) {
+                            d.fisheye = fisheye(d);
+                        })
+                        .attr("cx", function (d) {
+                            return d.fisheye.x;
+                        })
+                        .attr("cy", function (d) {
+                            return d.fisheye.y;
+                        })
+                        .attr("r", function (d) {
+                            return d.fisheye.z * 2.75;
+                        });
+                }
             });
 
+            // Remove the fisheye
             d3.select('#carpetplot').on("mouseout", function() {
                 fisheye.focus([d3.select('#carpetplot').width + 4 * radius, d3.select('#carpetplot').height + 4 * radius]);
 
@@ -334,6 +435,9 @@ var CarpetPlotConsumption = {
                 moveHighlights = true;
             });
 
+            /*
+             *  Add the Weektotals on the right
+             */
 
             var weekdays = [['Maandag', 0], ['Dinsdag', 1], ['Woensdag', 2], ['Donderdag', 3], ['Vrijdag', 4], ['Zaterdag', 5], ['Zondag', 6]];
             var weekTotals = [];
@@ -436,6 +540,10 @@ var CarpetPlotConsumption = {
                     })
                     .text(startYear + i);
             }
+
+            /*
+             *  Add vertical separator lines
+             */
 
             var verticalDaySeperatorLines = [1,2,3,4,5,6];
 
