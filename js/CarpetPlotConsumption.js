@@ -21,7 +21,7 @@ var CarpetPlotConsumption = {
 
         var margin = {top: 20, right: 15, bottom: 20, left: 70};
 
-        var outerWidth = 1300;
+        var outerWidth = 1400;
         var outerHeight = 500;
 
         var width = outerWidth  - margin.left - margin.right;
@@ -62,8 +62,10 @@ var CarpetPlotConsumption = {
                 // hier map je de data uit de csv aan het "data" object (de '+' is om aan te geven dat het een getalwaarde is
                 d.timeStamp = d.Timestamp;
                 d.consumption = +d.Consumption;
-                d.dateParts = d.Timestamp.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/);
-                d.date = new Date(d.dateParts[1], d.dateParts[2], d.dateParts[3], d.dateParts[4], d.dateParts[5], d.dateParts[6], d.dateParts[6]);
+                d.degreeDays = +d.heatingDegreeDays;
+                d.temp = +d.temperature;
+                d.dateParts = d.Timestamp.match(/(\d+)\/(\d+)\/(\d+) (\d+):(\d+)/);
+                d.date = new Date(d.dateParts[3], d.dateParts[2], d.dateParts[1], d.dateParts[4], d.dateParts[5], d.dateParts[5], d.dateParts[5]);
                 d.hour = d.date.getHours();
                 d.dayNumber = d.date.getDay();
                 d.x;
@@ -90,8 +92,30 @@ var CarpetPlotConsumption = {
              */
 
             // Get the extrema of the consumption
-            var minCons = d3.min(data, function(d) {return d.consumption;});
-            var maxCons = d3.max(data, function(d) {return d.consumption;});
+            var minDegreeCons = d3.min(data, function(d) {
+                if (d.degreeDays < 1 ){
+                    d.degreeDays = 1;
+                }
+
+                if (meterType == 'Water'){
+                    d.degreeConsumption = d.consumption;
+                    return d.degreeConsumption;
+                }
+                else {
+                    d.degreeConsumption = d.consumption / d.degreeDays;
+                    return d.degreeConsumption;
+                }
+            });
+            var maxDegreeCons = d3.max(data, function(d) {
+                return d.degreeConsumption;
+            });
+
+            var minCons = d3.min(data, function(d) {
+                return d.consumption;
+            });
+            var maxCons = d3.max(data, function(d) {
+                return d.consumption;
+            });
 
             //Start- en lastYear
             var startYear = d3.min(data, function(d){return d.date.getYear() + 1900;});
@@ -104,7 +128,7 @@ var CarpetPlotConsumption = {
                 }
             });
 
-            var totaalColumnWidth = width/8;
+            var totaalColumnWidth = (1300 - 85)/8;
             var blockWidth = (totaalColumnWidth*7)/168;
             var blockheight = height/52;
             var lineheight = 1;
@@ -136,10 +160,14 @@ var CarpetPlotConsumption = {
 
             };
 
+            var degreeHalf = (maxDegreeCons - minDegreeCons)/2;
+            var degreeColorScale =d3.scale.linear()
+                .domain([minDegreeCons,(minDegreeCons+degreeHalf) ,maxDegreeCons])
+                .range(["#ebfaeb","#33cc33","#0a290a"]); //Green
+
             var half = (maxCons - minCons)/2;
             var colorScale =d3.scale.linear()
                 .domain([minCons,(minCons+half) ,maxCons])
-                //.range(["#ffebe6","#ff3300","#330a00"]); RED
                 .range(["#ebfaeb","#33cc33","#0a290a"]); //Green
 
             // create tooltip div
@@ -184,7 +212,7 @@ var CarpetPlotConsumption = {
                 .append("circle")
                 .attr("cx", function(d) {
                     var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
-                    totalOnHour[x] += d.consumption;
+                    totalOnHour[x] += d.degreeConsumption;
                     d.x = (x*blockWidth + blockWidth/2);
                     return d.x;
                 })
@@ -202,7 +230,7 @@ var CarpetPlotConsumption = {
                 })
                 .style("opacity",.9)
                 .style("fill", function(d){
-                    return colorScale(d.consumption);
+                    return degreeColorScale(d.degreeConsumption);
                 });
 
             /*
@@ -215,7 +243,7 @@ var CarpetPlotConsumption = {
                 .append("rect")
                 .attr("x", function(d) {
                     var x  = Math.round((calculateXCoordinate(d.dayNumber, d.hour,true))/blockWidth);
-                    totalOnHour[x] += d.consumption;
+                    totalOnHour[x] += d.degreeConsumption;
                     d.x = (x*blockWidth + blockWidth/2);
                     return d.x;
                 })
@@ -244,7 +272,7 @@ var CarpetPlotConsumption = {
                     var month = monthNames[d.date.getMonth()];
                     var year = +d.date.getYear() + 1900;
 
-                    tooltipDiv.html(day + ' ' + date + ' ' + month + ' ' + year + "</br>Tijd: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Verbruik = " + Math.round(d.consumption))
+                    tooltipDiv.html(day + ' ' + date + ' ' + month + ' ' + year + "</br>Tijd: " + d.date.getHours() + ":0" + d.date.getMinutes() + "</br>"  + "Verbruik = " + Math.round(d.degreeConsumption))
                         .style("left", xPosition + "px")
                         .style("top", (yPosition+radius*2.5) + "px");
 
@@ -262,7 +290,7 @@ var CarpetPlotConsumption = {
                         highlightVertical
                             .attr("x", function () {
                                 var x = Math.round((calculateXCoordinate(d.dayNumber, d.hour, true)) / blockWidth);
-                                totalOnHour[x] += d.consumption;
+                                totalOnHour[x] += d.degreeConsumption;
                                 d.x = (x * blockWidth + blockWidth / 2);
                                 return d.x - blockWidth / 2;
                             })
@@ -294,7 +322,15 @@ var CarpetPlotConsumption = {
                             return (d.date.getHours() + ":0" + d.date.getMinutes());
                         });
 
-                    //
+                    //adjust the temperature
+                    d3.select('#temperature')
+                        .transition()
+                        .duration(1000)
+                        .text(function(){
+                            return (d.temp + ' °C');
+                        });
+
+                    //Highlights
                     moveHighlights = false;
 
                     highlightHorizontal
@@ -313,7 +349,7 @@ var CarpetPlotConsumption = {
                         .duration(600)
                         .attr("x", function () {
                             var x = Math.round((calculateXCoordinate(d.dayNumber, d.hour, true)) / blockWidth);
-                            totalOnHour[x] += d.consumption;
+                            totalOnHour[x] += d.degreeConsumption;
                             d.x = (x * blockWidth + blockWidth / 2);
                             return d.x - blockWidth / 2;
                         })
@@ -361,7 +397,8 @@ var CarpetPlotConsumption = {
                                 return "translate(" + (0) + "," + 0 + ")";
                             });
                     }
-                });
+                })
+                .attr("transform","translate(" + (outerWidth - 70) + "," + 0 + ")");
 
             toggle.append('rect')
                 .attr('x', 17.5)
@@ -468,27 +505,36 @@ var CarpetPlotConsumption = {
             for (i = 0; i < data.length; i++) {
                 var ycoord = calculateYCoordinate(data[i].date);
                 if (!(weekTotals.filter(function(e) { return e.ycoordinate == ycoord; }).length > 0)) {
-                    var temp = {ycoordinate: ycoord, total: 0};
+                    var temp = {ycoordinate: ycoord, total: 0 , realTotal: 0};
                     weekTotals.push(temp);
                 }
             }
-            // add up the totals
+            // add up the totals (total = relative, realTotal = absolute measurement)
             for (i = 0; i < data.length; i++) {
                 var ycoord = calculateYCoordinate(data[i].date);
                 var pos = weekTotals.map(function(e) { return e.ycoordinate; }).indexOf(ycoord);
                 var total = weekTotals[pos].total;
-                total += data[i].consumption;
+                var realTotal = weekTotals[pos].realTotal;
+                total += data[i].degreeConsumption;
+                realTotal += data[i].consumption;
                 weekTotals[pos].total = total;
+                weekTotals[pos].realTotal = realTotal;
             }
 
             var totalWeekMin = d3.min(weekTotals, function(d) {return d.total;});
             var totalWeekMax = d3.max(weekTotals, function(d) {return d.total;});
 
+            var realTotalWeekMin = d3.min(weekTotals, function(d) {return d.realTotal;});
+            var realTotalWeekMax = d3.max(weekTotals, function(d) {return d.realTotal;});
+
             var totalScale = d3.scale.linear()
                 .domain([totalWeekMin,totalWeekMax])
                 .range([0,totaalColumnWidth - blockWidth]);
+            var realTotalScale = d3.scale.linear()
+                .domain([realTotalWeekMin,realTotalWeekMax])
+                .range([0,totaalColumnWidth - blockWidth]);
 
-            svg.append("g").
+            var weekTotRects = svg.append("g").
                 selectAll("rect")
                 .data(weekTotals)
                 .enter()
@@ -546,7 +592,7 @@ var CarpetPlotConsumption = {
                         }
                     })
                     .attr('height', lineheight)
-                    .attr('width', width)
+                    .attr('width', 1300 - 85)
                     .attr('fill', '#666666');
 
                 svg.append('text')
@@ -645,6 +691,137 @@ var CarpetPlotConsumption = {
                         return ((i) * blockWidth + 2.5);
                     })
                     .attr('fill', '#666666');
+            }
+
+
+            /*
+             *  function to adjust the carpet plot
+             */
+
+            var adjustPlot = function(toDegreeDays){
+
+                if (toDegreeDays != false) {
+                    //show relative measurements
+                    weekTotRects.each(function (d) {
+                        d3.select(this)
+                            .transition()
+                            .duration(600)
+                            .attr('width', totalScale(d.total));
+                    });
+
+                    circles.each(function (d) {
+                        d3.select(this)
+                            .transition()
+                            .duration(600)
+                            .style('fill', degreeColorScale(d.degreeConsumption));
+                    });
+                } else {
+                    //show Absolute measurements
+                    weekTotRects.each(function (d) {
+                        d3.select(this)
+                            .transition()
+                            .duration(600)
+                            .attr('width', realTotalScale(d.realTotal));
+                    });
+
+                    circles.each(function (d) {
+                        d3.select(this)
+                            .transition()
+                            .duration(600)
+                            .style('fill', colorScale(d.consumption));
+                    });
+                }
+            };
+
+
+
+            /*
+             *  Add a toggle button to show absolute or relative consumption
+             */
+
+            if (meterType != 'Water') {
+
+                var degreeDaysOn = true;
+
+                var toggle2 = d3.select('#carpetplot').append('g')
+                    .on('click', function () {
+                        if (degreeDaysOn == true) {
+                            degreeDaysOn = false;
+                            d3.select('#toggle2_button')
+                                .transition()
+                                .duration(600)
+                                .attr('transform', function () {
+                                    return "translate(" + (-30) + "," + 0 + ")";
+                                });
+                        }
+                        else {
+                            degreeDaysOn = true;
+                            d3.select('#toggle2_button')
+                                .transition()
+                                .duration(600)
+                                .attr('transform', function () {
+                                    return "translate(" + (0) + "," + 0 + ")";
+                                });
+                        }
+
+                        adjustPlot(degreeDaysOn);
+
+                    })
+                    .attr("transform", "translate(" + (outerWidth - 140) + "," + 0 + ")");
+
+                toggle2.append('rect')
+                    .attr('x', 17.5)
+                    .attr('y', 0)
+                    .attr('width', 30)
+                    .attr('height', 30)
+                    .attr('fill', '#888888');
+
+                toggle2.append('circle')
+                    .attr('cx', 17.5)
+                    .attr('cy', 15)
+                    .attr('r', 15)
+                    .attr('fill', '#888888');
+
+                toggle2.append("text")
+                    .style("fill", "white")
+                    .attr("x", 17.5)
+                    .attr("y", 19.5)
+                    .attr('font-family', 'sans-serif')
+                    .attr('font-size', '11')
+                    .attr("text-anchor", "middle")
+                    .text("ON");
+
+                toggle2.append('circle')
+                    .attr('cx', 47.5)
+                    .attr('cy', 15)
+                    .attr('r', 15)
+                    .attr('fill', '#888888');
+
+                toggle2.append("text")
+                    .style("fill", "white")
+                    .attr("x", 47.5)
+                    .attr("y", 19.5)
+                    .attr('font-family', 'sans-serif')
+                    .attr('font-size', '11')
+                    .attr("text-anchor", "middle")
+                    .text("OFF");
+
+                var toggle2_button = toggle2.append('g')
+                    .attr('id', 'toggle2_button');
+
+                toggle2_button.append('circle')
+                    .attr('cx', 47.5)
+                    .attr('cy', 15)
+                    .attr('r', 14)
+                    .attr('fill', '#444444');
+
+                toggle2_button.append("image")
+                    .attr("xlink:href", "img/ic_temperature.png")
+                    .attr("x", 47.5 - 9)
+                    .attr("y", 15 - 9)
+                    .attr("width", 18)
+                    .attr("height", 18);
+
             }
 
             ProgressDialog();

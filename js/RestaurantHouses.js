@@ -386,7 +386,7 @@ var RestaurantHouses = {
             .attr("height", 35);
 
         dashboard.append('text')
-            .attr('id', 'time')
+            .attr('id', 'temperature')
             .attr('x', x_pos(6.3) + 112.5)
             .attr('y', 185)
             .attr('font-size', 15)
