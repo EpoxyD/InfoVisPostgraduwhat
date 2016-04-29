@@ -296,6 +296,29 @@ var CarpetPlotConsumption = {
 
                     //
                     moveHighlights = false;
+
+                    highlightHorizontal
+                        .transition()
+                        .duration(600)
+                        .attr("y", function () {
+                            var y = calculateYCoordinate(d.date) + blockheight / 2;
+                            lastYCoord = y + blockheight / 2;
+                            d.y = y;
+                            return d.y - blockheight / 2;
+                        })
+                        .style("opacity", 0.7);
+
+                    highlightVertical
+                        .transition()
+                        .duration(600)
+                        .attr("x", function () {
+                            var x = Math.round((calculateXCoordinate(d.dayNumber, d.hour, true)) / blockWidth);
+                            totalOnHour[x] += d.consumption;
+                            d.x = (x * blockWidth + blockWidth / 2);
+                            return d.x - blockWidth / 2;
+                        })
+                        .style("opacity", 0.7);
+
                 })
                 .on("mouseout", function() {
                     tooltipDiv
@@ -554,9 +577,9 @@ var CarpetPlotConsumption = {
                 .attr("x", function(d) {
                   return d * 24 * blockWidth;
                 })
-                .attr("y",margin.top)
+                .attr("y",margin.top - blockheight)
                 .attr("width",lineheight)
-                .attr("height",lastYCoord - 3*blockheight)
+                .attr("height", 2*blockheight )//lastYCoord - 3*blockheight)
                 .attr("fill","#666666");
 
 
